@@ -13,10 +13,10 @@ All Flutter / Dart tooling must be run from inside `chatweaver/`.
 
 Located in `spec/`. Read in this order when onboarding or before feature work:
 
-1. `spec/01_Architecture_And_Stack.md` — Stack, Clean Architecture layers, DI, folder layout.
-2. `spec/02_Data_Models_And_Storage.md` — Drift schema, DAOs, entities, repositories.
-3. `spec/03_Services_And_API.md` — LLM provider abstraction, token handling, context window, streaming.
-4. `spec/04_UI_UX_Flow.md` — Screens, Riverpod state per screen, navigation, UX flows.
+1. `spec/01_Architecture_And_Folders.md` — Arquitectura modular, estructura de carpetas, patrones Strategy/Factory/Adapter, justificacion del prefijo `I` en `ILLMProvider`.
+2. `spec/02_Local_Database_And_Context.md` — Esquemas Drift, entidades, DAOs, repositorios, y algoritmo completo de SlidingWindowStrategy con pseudocodigo.
+3. `spec/03_LLM_Module_And_MiniMax.md` — Codigo completo de `ILLMProvider`, `LLMFactory`, `MiniMaxProvider`, `MiniMaxApiClient`, `MiniMaxAdapter`, DTOs, `LlmException`, `parseNetworkError`.
+4. `spec/04_UI_State_And_Flow.md` — Pantallas, estado Riverpod por pantalla, `ChatController` con caso de uso `SendMessage`, widget `TokenMeter`, flujos de actualizacion de tokens en tiempo real.
 
 The product is a **local-first** chat client for multiple LLM providers (MVP: MiniMax). No login, no backend. The app owns the conversation context and token budget.
 
@@ -44,10 +44,11 @@ This is a freshly generated Flutter app — a single-module starter with no feat
 - `analysis_options.yaml` — Inherits the recommended `package:flutter_lints/flutter.yaml` rule set.
 - `android/`, `ios/`, `linux/`, `macos/`, `web/`, `windows/` — Generated platform shells for all six Flutter targets; modify when adding platform-specific configuration.
 
-There is no `lib/` subfolder structure (no `models/`, `services/`, `widgets/`, etc.) — when adding features, follow the structure defined in `spec/01_Architecture_And_Stack.md` (feature folders with `data/`, `domain/`, `presentation/` and a shared `core/`).
+There is no `lib/` subfolder structure (no `models/`, `services/`, `widgets/`, etc.) — when adding features, follow the modular structure defined in `spec/01_Architecture_And_Folders.md` (top-level modules `llm/`, `session/`, `message/`, `db/`, `context/`, `ui/`, each with optional `domain/data/presentation` subfolders). There is no `core/` folder.
 
 ## Notes for future work
 
 - The project is not under git in this directory; initialize one before relying on history or VCS-aware tooling.
-- When adding a new LLM provider (OpenAI, Ollama, etc.), the only files that should change are inside `lib/core/services/llm/providers/` and the registry in `llmProviderFactoryProvider` (see `spec/03_Services_And_API.md` §12). UI and storage layers must not be touched.
-- API keys must never be logged, persisted to SQLite, or written to `shared_preferences`. They live in `flutter_secure_storage` and only in-memory of the active `LlmProvider` instance.
+- When adding a new LLM provider (OpenAI, Ollama, etc.), the only files that should change are inside `lib/llm/providers/<provider_id>/` and the registry in `lib/di/global_providers.dart` (see `spec/03_LLM_Module_And_MiniMax.md`). UI and storage layers must not be touched. The factory (`LLMFactory`) is the single extension point.
+- API keys must never be logged, persisted to SQLite, or written to `shared_preferences`. They live in `flutter_secure_storage` and only in-memory of the active `ILLMProvider` instance.
+- The architecture is **modular top-level** (`llm/`, `session/`, `message/`, `db/`, `context/`, `ui/`). There is no `core/` folder. Cross-cutting concerns live in `di/` and `context/`.
