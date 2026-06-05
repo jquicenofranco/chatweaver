@@ -1,0 +1,2 @@
+- [ChatWeaver Architecture](chatweaver-architecture.md) — Capas modulares (llm, session, message, db, context, ui, di). Strategy + Factory + Adapter. Sin lib/core.
+- [ChatWeaver Dart Analyzer Quirks](chatweaver-dart-analyzer-quirks.md) — dot-shorthands deshabilitados, JsonKey en freezed factories, Dio ResponseBody, etc.
