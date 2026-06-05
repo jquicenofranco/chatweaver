@@ -36,7 +36,7 @@ llm/                                    # Modulo autocontenido
 // lib/llm/chat_message.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'chat_message.freezed.dart';
+part '../../spec/chat_message.freezed.dart';
 
 enum ChatRole { system, user, assistant }
 
@@ -61,7 +61,7 @@ class ChatMessage with _$ChatMessage {
 // lib/llm/generate_request.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'generate_request.freezed.dart';
+part '../../spec/generate_request.freezed.dart';
 
 @freezed
 class GenerateRequest with _$GenerateRequest {
@@ -79,9 +79,9 @@ class GenerateRequest with _$GenerateRequest {
 ```dart
 // lib/llm/generate_response.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'chat_message.dart';
+import '../../spec/chat_message.dart';
 
-part 'generate_response.freezed.dart';
+part '../../spec/generate_response.freezed.dart';
 
 @freezed
 class GenerateResponseChunk with _$GenerateResponseChunk {
@@ -126,9 +126,9 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import 'generate_request.dart';
-import 'generate_response.dart';
-import 'chat_message.dart';
+import '../../spec/generate_request.dart';
+import '../../spec/generate_response.dart';
+import '../../spec/chat_message.dart';
 
 /// Interfaz Strategy para proveedores de LLM.
 ///
@@ -197,7 +197,7 @@ abstract class ILLMProvider {
 // lib/llm/llm_factory.dart
 import 'package:dio/dio.dart';
 
-import 'illm_provider.dart';
+import '../../spec/illm_provider.dart';
 
 typedef LlmProviderBuilder = ILLMProvider Function({
   required String apiKey,
@@ -358,8 +358,8 @@ LlmException _parseDioError(DioException e, StackTrace? st) {
 // lib/llm/providers/minimax/dto/minimax_request_dto.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'minimax_request_dto.freezed.dart';
-part 'minimax_request_dto.g.dart';
+part '../../spec/minimax_request_dto.freezed.dart';
+part '../../spec/minimax_request_dto.g.dart';
 
 @freezed
 class MiniMaxRequestDTO with _$MiniMaxRequestDTO {
@@ -385,8 +385,8 @@ class MiniMaxMessageDTO with _$MiniMaxMessageDTO {
 // lib/llm/providers/minimax/dto/minimax_response_dto.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'minimax_response_dto.freezed.dart';
-part 'minimax_response_dto.g.dart';
+part '../../spec/minimax_response_dto.freezed.dart';
+part '../../spec/minimax_response_dto.g.dart';
 
 @freezed
 class MiniMaxResponseDTO with _$MiniMaxResponseDTO {
@@ -440,8 +440,8 @@ import 'dart:typed_data'; // Uint8List
 
 import 'package:dio/dio.dart';
 
-import '../dto/minimax_request_dto.dart';
-import '../dto/minimax_response_dto.dart';
+import '../../dto/minimax_request_dto.dart';
+import '../../dto/minimax_response_dto.dart';
 
 /// Cliente HTTP especifico para la API de MiniMax.
 ///
@@ -557,9 +557,9 @@ class MiniMaxApiException implements Exception {
 
 ```dart
 // lib/llm/providers/minimax/minimax_adapter.dart
-import '../../../generate_response.dart';
-import '../../../chat_message.dart';
-import '../dto/minimax_response_dto.dart';
+import '../../../../generate_response.dart';
+import '../../../../chat_message.dart';
+import '../../dto/minimax_response_dto.dart';
 
 /// Adapter que traduce DTOs nativos de MiniMax a entidades de dominio.
 ///
@@ -620,14 +620,14 @@ import 'dart:io'; // SocketException
 
 import 'package:dio/dio.dart';
 
-import '../../../illm_provider.dart';
-import '../../../generate_request.dart';
-import '../../../generate_response.dart';
-import '../../../llm_exception.dart';
-import '../../../chat_message.dart';
-import 'minimax_api_client.dart';
-import 'minimax_adapter.dart';
-import 'dto/minimax_request_dto.dart';
+import '../../../../illm_provider.dart';
+import '../../../../generate_request.dart';
+import '../../../../generate_response.dart';
+import '../../../../llm_exception.dart';
+import '../../../../chat_message.dart';
+import '../../spec/minimax_api_client.dart';
+import '../../spec/minimax_adapter.dart';
+import '../../spec/dto/minimax_request_dto.dart';
 
 /// Implementacion de [ILLMProvider] para MiniMax.
 ///

@@ -204,7 +204,7 @@ class MiniMaxProvider implements ILLMProvider {
 
 ```dart
 // lib/di/global_providers.dart
-import '../llm/providers/minimax/minimax_provider.dart';
+import '../../llm/providers/minimax/minimax_provider.dart';
 
 final llmProviderFactoryProvider = Provider<LLMFactory>((ref) {
   final factory = LLMFactory();
@@ -513,14 +513,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
 
-import '../llm/llm_factory.dart';
-import '../llm/illm_provider.dart';
-import '../llm/providers/minimax/minimax_provider.dart';
-import '../db/credential_repository.dart';
-import '../db/secure_credential_store.dart';
-import '../db/credential_handle.dart';
-import '../session/domain/repositories/sessions_repository.dart';
-import '../message/domain/repositories/messages_repository.dart';
+import '../../llm/llm_factory.dart';
+import '../../llm/illm_provider.dart';
+import '../../llm/providers/minimax/minimax_provider.dart';
+import '../../db/credential_repository.dart';
+import '../../db/secure_credential_store.dart';
+import '../../db/credential_handle.dart';
+import '../../session/domain/repositories/sessions_repository.dart';
+import '../../message/domain/repositories/messages_repository.dart';
 ```
 
 // ─── Infraestructura ────────────────────────────────────────────
