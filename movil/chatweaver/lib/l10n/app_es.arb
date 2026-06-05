@@ -1,0 +1,102 @@
+{
+  "@@locale": "es",
+  "appTitle": "ChatWeaver",
+  "@appTitle": { "description": "Titulo de la app" },
+
+  "modelSelectorTitle": "Elegi un modelo",
+  "modelSelectorEmpty": "No hay modelos habilitados. Toca Ajustes.",
+  "modelSelectorGoToSettings": "Ir a Ajustes",
+  "modelSelectorSubtitle": "{contextWindow} • {streaming}",
+  "@modelSelectorSubtitle": {
+    "placeholders": {
+      "contextWindow": { "type": "String" },
+      "streaming": { "type": "String" }
+    }
+  },
+  "modelSelectorStreaming": "streaming",
+  "modelSelectorBadgeFree": "gratis",
+  "modelSelectorBadgePaid": "pago",
+  "modelSelectorDisable": "Deshabilitar",
+
+  "tokenInputTitle": "Tu API key",
+  "tokenInputProvider": "Proveedor: {provider}",
+  "@tokenInputProvider": {
+    "placeholders": { "provider": { "type": "String" } }
+  },
+  "tokenInputModel": "Modelo: {model}",
+  "@tokenInputModel": {
+    "placeholders": { "model": { "type": "String" } }
+  },
+  "tokenInputLabel": "Pega tu API key",
+  "tokenInputRemember": "Recordar token",
+  "tokenInputSubmit": "Probar y continuar",
+  "tokenInputHelp": "Donde consigo mi token?",
+  "tokenInputConnecting": "Conectando…",
+  "tokenInputConnected": "Conectado",
+
+  "sessionsTitle": "Sesiones",
+  "sessionsEmpty": "Empeza tu primera conversacion",
+  "sessionsNewSession": "Nueva sesion",
+  "sessionsRename": "Renombrar",
+  "sessionsDelete": "Borrar",
+  "sessionsDeleteConfirmTitle": "Borrar sesion?",
+  "sessionsDeleteConfirmBody": "Esta accion no se puede deshacer.",
+  "sessionsCancel": "Cancelar",
+  "sessionsConfirm": "Borrar",
+  "sessionsLastMessageAgo": "hace {when}",
+  "@sessionsLastMessageAgo": {
+    "placeholders": { "when": { "type": "String" } }
+  },
+  "sessionsTokens": "{count} tokens",
+  "@sessionsTokens": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "chatStop": "Detener",
+  "chatPlaceholder": "Escribi tu mensaje…",
+  "chatSend": "Enviar",
+  "chatRename": "Renombrar sesion",
+  "chatSetSystemPrompt": "Prompt del sistema",
+  "chatDeleteSession": "Borrar sesion",
+  "chatContextOverflow": "Se descartaron {n} mensajes antiguos",
+  "@chatContextOverflow": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "chatTokensUsed": "{used} / {budget}",
+  "@chatTokensUsed": {
+    "placeholders": {
+      "used": { "type": "int" },
+      "budget": { "type": "int" }
+    }
+  },
+  "chatProjectedWarning": "Proximo mensaje usara {pct}% del contexto",
+  "@chatProjectedWarning": {
+    "placeholders": { "pct": { "type": "int" } }
+  },
+  "chatRetry": "Reintentar",
+  "chatMessageFailed": "Error al enviar",
+
+  "settingsTitle": "Ajustes",
+  "settingsCredentials": "Credenciales",
+  "settingsModels": "Modelos",
+  "settingsAppearance": "Apariencia",
+  "settingsLanguage": "Idioma",
+  "settingsAdvanced": "Avanzado",
+  "settingsAbout": "Acerca de",
+  "settingsAddCredential": "Agregar credencial",
+  "settingsNoCredentials": "Sin credenciales guardadas",
+  "settingsEditCredential": "Editar credencial",
+  "settingsDeleteCredential": "Borrar credencial",
+  "settingsThemeSystem": "Sistema",
+  "settingsThemeLight": "Claro",
+  "settingsThemeDark": "Oscuro",
+  "settingsLangEs": "Espanol",
+  "settingsLangEn": "Ingles",
+
+  "commonRetry": "Reintentar",
+  "commonCancel": "Cancelar",
+  "commonConfirm": "Confirmar",
+  "commonDelete": "Borrar",
+  "commonSave": "Guardar",
+  "commonClose": "Cerrar"
+}

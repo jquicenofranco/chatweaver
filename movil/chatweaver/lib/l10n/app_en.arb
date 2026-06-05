@@ -1,0 +1,101 @@
+{
+  "@@locale": "en",
+  "appTitle": "ChatWeaver",
+
+  "modelSelectorTitle": "Choose a model",
+  "modelSelectorEmpty": "No enabled models. Tap Settings.",
+  "modelSelectorGoToSettings": "Go to Settings",
+  "modelSelectorSubtitle": "{contextWindow} • {streaming}",
+  "@modelSelectorSubtitle": {
+    "placeholders": {
+      "contextWindow": { "type": "String" },
+      "streaming": { "type": "String" }
+    }
+  },
+  "modelSelectorStreaming": "streaming",
+  "modelSelectorBadgeFree": "free",
+  "modelSelectorBadgePaid": "paid",
+  "modelSelectorDisable": "Disable",
+
+  "tokenInputTitle": "Your API key",
+  "tokenInputProvider": "Provider: {provider}",
+  "@tokenInputProvider": {
+    "placeholders": { "provider": { "type": "String" } }
+  },
+  "tokenInputModel": "Model: {model}",
+  "@tokenInputModel": {
+    "placeholders": { "model": { "type": "String" } }
+  },
+  "tokenInputLabel": "Paste your API key",
+  "tokenInputRemember": "Remember token",
+  "tokenInputSubmit": "Test and continue",
+  "tokenInputHelp": "Where do I get my token?",
+  "tokenInputConnecting": "Connecting…",
+  "tokenInputConnected": "Connected",
+
+  "sessionsTitle": "Sessions",
+  "sessionsEmpty": "Start your first conversation",
+  "sessionsNewSession": "New session",
+  "sessionsRename": "Rename",
+  "sessionsDelete": "Delete",
+  "sessionsDeleteConfirmTitle": "Delete session?",
+  "sessionsDeleteConfirmBody": "This action cannot be undone.",
+  "sessionsCancel": "Cancel",
+  "sessionsConfirm": "Delete",
+  "sessionsLastMessageAgo": "{when} ago",
+  "@sessionsLastMessageAgo": {
+    "placeholders": { "when": { "type": "String" } }
+  },
+  "sessionsTokens": "{count} tokens",
+  "@sessionsTokens": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+
+  "chatStop": "Stop",
+  "chatPlaceholder": "Type your message…",
+  "chatSend": "Send",
+  "chatRename": "Rename session",
+  "chatSetSystemPrompt": "System prompt",
+  "chatDeleteSession": "Delete session",
+  "chatContextOverflow": "Discarded {n} old messages",
+  "@chatContextOverflow": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "chatTokensUsed": "{used} / {budget}",
+  "@chatTokensUsed": {
+    "placeholders": {
+      "used": { "type": "int" },
+      "budget": { "type": "int" }
+    }
+  },
+  "chatProjectedWarning": "Next message will use {pct}% of context",
+  "@chatProjectedWarning": {
+    "placeholders": { "pct": { "type": "int" } }
+  },
+  "chatRetry": "Retry",
+  "chatMessageFailed": "Send failed",
+
+  "settingsTitle": "Settings",
+  "settingsCredentials": "Credentials",
+  "settingsModels": "Models",
+  "settingsAppearance": "Appearance",
+  "settingsLanguage": "Language",
+  "settingsAdvanced": "Advanced",
+  "settingsAbout": "About",
+  "settingsAddCredential": "Add credential",
+  "settingsNoCredentials": "No credentials saved",
+  "settingsEditCredential": "Edit credential",
+  "settingsDeleteCredential": "Delete credential",
+  "settingsThemeSystem": "System",
+  "settingsThemeLight": "Light",
+  "settingsThemeDark": "Dark",
+  "settingsLangEs": "Spanish",
+  "settingsLangEn": "English",
+
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonDelete": "Delete",
+  "commonSave": "Save",
+  "commonClose": "Close"
+}
