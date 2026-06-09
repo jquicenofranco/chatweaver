@@ -20,6 +20,8 @@ pluginManagement {
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
     id("com.android.application") version "8.11.1" apply false
+    // Fija la version de Kotlin que Built-in Kotlin usara.
+    // apply false: NO aplica el plugin al proyecto (ya no hay kotlin-android en app/build.gradle.kts).
     id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 

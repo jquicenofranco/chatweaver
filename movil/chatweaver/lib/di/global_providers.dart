@@ -48,9 +48,11 @@ final dioProvider = Provider<Dio>((ref) {
 });
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
-  return const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
+  // flutter_secure_storage 10.0.0: encryptedSharedPreferences is deprecated
+  // (Jetpack Crypto deprecation). Default uses new custom ciphers and
+  // auto-migrates existing data via migrateOnAlgorithmChange (default true).
+  // No explicit AndroidOptions needed for the new defaults.
+  return const FlutterSecureStorage();
 });
 
 final uuidProvider = Provider<Uuid>((ref) => const Uuid());

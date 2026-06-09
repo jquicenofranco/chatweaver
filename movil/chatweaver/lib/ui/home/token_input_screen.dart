@@ -71,7 +71,9 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
                 obscureText: _obscure,
                 autocorrect: false,
                 enableSuggestions: false,
-                maxLines: 3,
+                // Cuando se oculta, el campo es password (1 línea).
+                // Cuando se muestra, permite pegar keys multilínea (3 líneas).
+                maxLines: _obscure ? 1 : 3,
                 minLines: 1,
                 style: const TextStyle(fontFamily: 'monospace'),
                 decoration: InputDecoration(
