@@ -150,7 +150,7 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
   }
 
   Future<void> _openDocs(BuildContext context) async {
-    final uri = Uri.parse('https://docs.minimax.chat');
+    final uri = Uri.parse('https://platform.minimax.io/docs');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }

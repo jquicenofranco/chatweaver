@@ -258,9 +258,9 @@ Entidades adicionales del dominio (completas, no analogas):
 @freezed
 class ModelDefinition with _$ModelDefinition {
   const factory ModelDefinition({
-    required String id,                  // ej. 'MiniMax-M'
+    required String id,                  // ej. 'MiniMax-M3'
     required String providerId,         // ej. 'MiniMax'
-    required String displayName,       // ej. 'MiniMax M'
+    required String displayName,       // ej. 'MiniMax M3'
     required int contextWindow,
     @Default(true) bool supportsStreaming,
     String? apiBaseUrl,                 // override opcional
@@ -406,11 +406,20 @@ Convenciones:
 ## 9. Seed inicial
 
 `AppDatabase._seedModelConfigs()` inserta los modelos MiniMax en el primer arranque.
+Los IDs deben matchear los que acepta la API real
+(`https://platform.minimax.io/docs/api-reference/text-openai-api`) — ver seccion 11
+de `03_LLM_Module_And_MiniMax.md` para mas detalle.
 
 | id | provider_id | display_name | context_window |
 |---|---|---|---|
-| `MiniMax-M` | `MiniMax` | MiniMax M | 200000 |
-| `MiniMax-XL` | `MiniMax` | MiniMax XL | 200000 |
+| `MiniMax-M3` | `MiniMax` | MiniMax M3 | 1000000 |
+| `MiniMax-M2.7` | `MiniMax` | MiniMax M2.7 | 204800 |
+| `MiniMax-M2.7-highspeed` | `MiniMax` | MiniMax M2.7 Highspeed | 204800 |
+
+> **Migracion v1 -> v2**: el seed historico uso los IDs `MiniMax-M` y
+> `MiniMax-XL`, que **no existen en la API real**. `onUpgrade` borra esas filas
+> y reinserta las de arriba, re-apuntando sesiones huerfanas a `MiniMax-M3`
+> para no perder el historial.
 
 ---
 

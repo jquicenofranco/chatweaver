@@ -15,7 +15,7 @@ import 'dto/minimax_response_dto.dart';
 class MiniMaxApiClient {
   MiniMaxApiClient({
     required Dio dio,
-    String baseUrl = 'https://api.minimax.chat/v1',
+    String baseUrl = 'https://api.minimax.io/v1',
   })  : _dio = dio,
         _baseUrl = baseUrl;
 

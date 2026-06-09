@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:chatweaver/context/context_window_manager.dart';
 import 'package:chatweaver/di/global_providers.dart';
+import 'package:chatweaver/llm/illm_provider.dart';
 import 'package:chatweaver/llm/llm_exception.dart';
 import 'package:chatweaver/message/domain/entities/message.dart';
 import 'package:chatweaver/message/domain/entities/token_usage.dart';
@@ -25,29 +27,68 @@ class ChatState with _$ChatState {
 ///
 /// Sigue el patron StateNotifier (no Notifier) para conservar
 /// la firma exacta de spec 04 §4.4.
+///
+/// Importante: el caso de uso [SendMessage] se resuelve **lazy** dentro
+/// de [send], no en el constructor. Esto evita el race condition donde
+/// `activeLlmProviderProvider(sessionId)` todavia esta en loading al
+/// construir el controller (sucede al entrar a un chat de sesion
+/// recien creada) y un `ref.read(...).valueOrNull` sincrono lanzaba
+/// `StateError("No se pudo resolver el provider LLM para ...")`.
+/// Los errores se propagan a [ChatState.error] en vez de throwear.
 class ChatController extends StateNotifier<ChatState> {
   ChatController({
     required this.sessionId,
-    required SendMessage sendMessage,
-  })  : _sendMessage = sendMessage,
-        super(const ChatState());
+    required this.ref,
+  }) : super(const ChatState());
 
   final String sessionId;
-  final SendMessage _sendMessage;
+  final Ref ref;
   CancelToken? _cancelToken;
+
+  /// Resuelve el caso de uso [SendMessage] para la sesion activa.
+  ///
+  /// await-ea el `activeLlmProviderProvider` (que puede estar loading
+  /// al entrar a un chat de sesion nueva) y propaga cualquier
+  /// excepcion al caller para que la convierta en [ChatState.error].
+  ///
+  /// No se cachea: si el usuario cambia la credencial activa en
+  /// Ajustes, queremos que el siguiente `send` use la nueva. El
+  /// `autoDispose` del provider garantiza que el controller se
+  /// reconstruye si la sesion cambia.
+  Future<SendMessage> _resolveSendMessage() async {
+    final ILLMProvider provider =
+        await ref.read(activeLlmProviderProvider(sessionId).future);
+    return SendMessage(
+      provider: provider,
+      sessions: ref.read(sessionsRepositoryProvider),
+      messages: ref.read(messagesRepositoryProvider),
+      context: ContextWindowManager(
+        provider: provider,
+        contextWindow: provider.contextWindow,
+      ),
+      uuid: ref.read(uuidProvider),
+    );
+  }
 
   Future<void> send(String text) async {
     if (text.trim().isEmpty) return;
     _cancelToken = CancelToken();
     state = state.copyWith(isStreaming: true, error: null);
     try {
-      await _sendMessage(
+      final sendMessage = await _resolveSendMessage();
+      await sendMessage(
         sessionId: sessionId,
         userText: text,
         cancelToken: _cancelToken,
       );
     } on LlmException catch (e) {
       state = state.copyWith(error: e.userMessage);
+    } catch (e) {
+      // Cubre errores de resolucion del provider (sesion borrada,
+      // modelo removido del catalogo, sin credencial, etc.) y
+      // cualquier otra excepcion inesperada. Antes esto throweaba
+      // sin control y reventaba la UI.
+      state = state.copyWith(error: 'Error al enviar: $e');
     } finally {
       state = state.copyWith(isStreaming: false);
     }
@@ -73,6 +114,6 @@ final chatControllerProvider = StateNotifierProvider.autoDispose
     .family<ChatController, ChatState, String>(
   (ref, sessionId) => ChatController(
     sessionId: sessionId,
-    sendMessage: ref.read(sendMessageProvider(sessionId)),
+    ref: ref,
   ),
 );

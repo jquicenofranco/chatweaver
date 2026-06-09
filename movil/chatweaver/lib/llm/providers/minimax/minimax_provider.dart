@@ -23,7 +23,7 @@ class MiniMaxProvider implements ILLMProvider {
     required this.modelId,
     required this.contextWindow,
     required Dio dio,
-    String baseUrl = 'https://api.minimax.chat/v1',
+    String baseUrl = 'https://api.minimax.io/v1',
     this.costPer1kTokens = (inputPer1k: 0.0, outputPer1k: 0.0),
   })  : _apiKey = apiKey,
         _client = MiniMaxApiClient(dio: dio, baseUrl: baseUrl);

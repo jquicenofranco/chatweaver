@@ -38,7 +38,7 @@ void main() {
     final session = ChatSession(
       id: 's1',
       title: 'Test',
-      modelId: 'MiniMax-M',
+      modelId: 'MiniMax-M3',
       providerId: 'MiniMax',
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),

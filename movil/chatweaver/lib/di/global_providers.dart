@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uuid/uuid.dart';
 
-import 'package:chatweaver/context/context_window_manager.dart';
 import 'package:chatweaver/db/app_database.dart';
 import 'package:chatweaver/db/credential_handle.dart';
 import 'package:chatweaver/db/credential_repository.dart';
@@ -229,26 +228,11 @@ final appendMessageProvider = Provider<AppendMessage>((ref) {
   return AppendMessage(ref.read(messagesRepositoryProvider));
 });
 
-/// Use case [SendMessage] pre-construido para una sesion.
-/// Resuelve el provider activo, el context manager y los repos.
-final sendMessageProvider =
-    Provider.family<SendMessage, String>((ref, sessionId) {
-  final providerAsync = ref.watch(activeLlmProviderProvider(sessionId));
-  final provider = providerAsync.valueOrNull;
-  if (provider == null) {
-    throw StateError('No se pudo resolver el provider LLM para $sessionId');
-  }
-  return SendMessage(
-    provider: provider,
-    sessions: ref.read(sessionsRepositoryProvider),
-    messages: ref.read(messagesRepositoryProvider),
-    context: ContextWindowManager(
-      provider: provider,
-      contextWindow: provider.contextWindow,
-    ),
-    uuid: ref.read(uuidProvider),
-  );
-});
+/// Use case [SendMessage] se construye lazy dentro de
+/// `ChatController._resolveSendMessage()` — NO aca. La razon esta
+/// documentada en `chat_controller.dart`: si lo construimos aca
+/// sincrónicamente, un chat de sesion nueva lanza StateError
+/// porque `activeLlmProviderProvider(sessionId)` esta loading.
 
 /// Lista de modelos habilitados. Usado por el selector de modelo
 /// y por la pantalla de settings.

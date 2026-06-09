@@ -453,7 +453,7 @@ class MiniMaxApiClient {
 
   MiniMaxApiClient({
     required Dio dio,
-    String baseUrl = 'https://api.minimax.chat/v1',
+    String baseUrl = 'https://api.minimax.io/v1',
   })  : _dio = dio,
         _baseUrl = baseUrl;
 
@@ -652,7 +652,7 @@ class MiniMaxProvider implements ILLMProvider {
     required String modelId,
     required int contextWindow,
     required Dio dio,
-    String baseUrl = 'https://api.minimax.chat/v1',
+    String baseUrl = 'https://api.minimax.io/v1',
     this.costPer1kTokens = (inputPer1k: 0.0, outputPer1k: 0.0),
   })  : _apiKey = apiKey,
         _client = MiniMaxApiClient(dio: dio, baseUrl: baseUrl),
@@ -827,7 +827,104 @@ class MiniMaxProvider implements ILLMProvider {
 
 ---
 
-## 11. Resumen de invariantes
+## 11. Detalles del provider real (MiniMax)
+
+> Esta seccion documenta los IDs de modelo y endpoints **reales** verificados contra
+> `https://platform.minimax.io/docs`. Cualquier contribuidor que anada otro modelo
+> DEBE confirmar primero que existe en esa documentacion — no inferir nombres.
+
+### 11.1 Endpoint
+
+- **Base URL (OpenAI-compatible)**: `https://api.minimax.io/v1`
+- **Path**: `POST /v1/chat/completions`
+- **Auth header**: `Authorization: Bearer <MINIMAX_API_KEY>`
+- **Plataforma / gestion de keys**: `https://platform.minimax.io/user-center/basic-information/interface-key`
+- **Docs**: `https://platform.minimax.io/docs` (seccion *API Reference → Text → OpenAI API Compatible*)
+
+> Tambien existe una superficie **Anthropic-compatible** en
+> `https://api.minimax.io/anthropic` con auth por `x-api-key` y
+> `anthropic-version: 2023-06-01`. El MVP usa solo la OpenAI-compatible
+> para mantener una unica libreria HTTP y un solo set de DTOs. Si se
+> necesita la API Anthropic-compatible, va como un nuevo provider
+> registrado en `LLMFactory` — **no** se modifica `MiniMaxProvider`.
+
+### 11.2 Modelos sembrados en `model_configs`
+
+| `id` (DB) | `displayName` | `contextWindow` | Notas |
+|---|---|---|---|
+| `MiniMax-M3` | MiniMax M3 | 1,000,000 | Flagship multimodal. Soporta `thinking` adaptativo. |
+| `MiniMax-M2.7` | MiniMax M2.7 | 204,800 | Default. Buen balance calidad/costo. |
+| `MiniMax-M2.7-highspeed` | MiniMax M2.7 Highspeed | 204,800 | Variante mas rapida del M2.7. |
+
+> El seed historico uso los IDs `MiniMax-M` y `MiniMax-XL`, que **no
+> existen en la API real**. La migracion de DB `v1 -> v2`
+> (`app_database.dart::_replaceSeedModelConfigs`) los borra y los
+> reemplaza por los IDs de arriba, re-apuntando sesiones huerfanas
+> a `MiniMax-M3`.
+
+### 11.3 Parametros del request
+
+| Parametro | Tipo | Default MiniMax | Notas |
+|---|---|---|---|
+| `model` | string | (segun `model_configs.id`) | Debe matchear un ID valido de la API. |
+| `messages` | array | — | Formato OpenAI: `[{role, content}]`. |
+| `max_tokens` o `max_completion_tokens` | int | 1024 | Ambos aceptados. |
+| `temperature` | float | 1.0 | Rango [0, 2]. |
+| `top_p` | float | 0.95 (M3) / 0.9 (M2.x) | Rango [0, 1]. |
+| `stream` | bool | false | `true` para SSE. |
+| `thinking` | object | — | `{"type":"adaptive"}` para M3. |
+| `reasoning_split` | bool | false | Separa `reasoning_content`/`content`. |
+
+> El provider del MVP **no** envia `thinking`, `reasoning_split` ni
+> `stream_options` — son aditivos y no rompen nada si se omiten. Si
+> en el futuro se quiere mostrar el "razonamiento" del modelo, se
+> extiende el DTO de respuesta y `MiniMaxAdapter`, sin tocar la UI.
+
+### 11.4 Formato de respuesta (no-streaming)
+
+```json
+{
+  "id": "0677...",
+  "model": "MiniMax-M3",
+  "choices": [
+    {
+      "index": 0,
+      "message": {"role": "assistant", "content": "..."},
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 84,
+    "total_tokens": 96
+  }
+}
+```
+
+El DTO `MiniMaxResponseDTO` y `MiniMaxAdapter.toChunk` ya cubren este
+formato. `finish_reason` puede ser `stop`, `length`, `tool_calls` o
+`content_filter` — todos mapean a `GenerateResponseChunk.finishReason`.
+
+### 11.5 Errores especificos que valen la pena conocer
+
+| HTTP | Cuerpo tipico | Mapping en `parseNetworkError` |
+|---|---|---|
+| 401 | `{"type":"error","error":{"type":"authorized_error", ...}}` | `AuthException` — "Token invalido o expirado" |
+| 403 | forbidden | `AuthException` — "Sin permisos para este modelo" |
+| 404 | model_not_found | `ProviderException` — "Modelo no encontrado" |
+| 429 | rate_limit_exceeded | `RateLimitException` |
+| 5xx | internal_error | `ProviderException` con mensaje del server |
+
+> **Si un 401 viene con cuerpo vacio**, es senial de que el request
+> no llego a `api.minimax.io` (DNS equivocado, proxy, etc.). El bug
+> historico `api.minimax.chat` (dominio que no hospeda MiniMax)
+> producia exactamente este sintoma. Verificar siempre con
+> `curl -i https://api.minimax.io/v1/chat/completions` antes de
+> tocar codigo de la app.
+
+---
+
+## 12. Resumen de invariantes
 
 1. `ILLMProvider` es la unica interfaz publica del modulo `llm/`.
 2. Los DTOs nativos **nunca** cruzan la capa del provider hacia `domain` o `presentation`.
@@ -835,3 +932,6 @@ class MiniMaxProvider implements ILLMProvider {
 4. `parseNetworkError` es implementacion de cada provider; la UI nunca ve `DioException`.
 5. El factory es el unico punto de registro; `session/` y `ui/` solo conocen `ILLMProvider`.
 6. La UI usa siempre `generateStream`; no existe `sendMessage` (no-streaming) en la interfaz.
+7. **Los IDs de modelo y la base URL vienen de la documentacion oficial** — no se infieren.
+   Cualquier anadido requiere confirmar primero contra
+   `https://platform.minimax.io/docs`.
