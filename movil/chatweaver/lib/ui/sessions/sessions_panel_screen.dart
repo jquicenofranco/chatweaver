@@ -13,6 +13,11 @@ import 'package:chatweaver/ui/shared/confirm_dialog.dart';
 import 'package:chatweaver/ui/shared/empty_state_view.dart';
 import 'package:chatweaver/ui/shared/error_view.dart';
 
+/// Provider activo (modelo + provider) seleccionado en este panel.
+/// spec 04 v2.0.0: el panel puede recibir `providerId` y `modelId`
+/// como query params; ambos son opcionales.
+final activeProviderIdProvider = StateProvider<String?>((ref) => null);
+
 /// Modelo activo seleccionado en este panel (param de query o null).
 final activeModelIdProvider = StateProvider<String?>((ref) => null);
 
@@ -29,8 +34,16 @@ final activeModelProvider = FutureProvider<ModelDefinition?>((ref) async {
 });
 
 class SessionsPanelScreen extends ConsumerStatefulWidget {
-  const SessionsPanelScreen({super.key, this.initialModelId});
+  const SessionsPanelScreen({
+    super.key,
+    this.initialProviderId,
+    this.initialModelId,
+  });
 
+  /// spec 04 v2.0.0: query param `providerId` (opcional).
+  final String? initialProviderId;
+
+  /// spec 04 v2.0.0: query param `modelId` (opcional).
   final String? initialModelId;
 
   @override
@@ -44,6 +57,13 @@ class _SessionsPanelScreenState extends ConsumerState<SessionsPanelScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // spec 04 v2.0.0: providerId puede llegar como null/empty en
+      // deep links legacy; solo actualizamos si viene valor util.
+      if (widget.initialProviderId != null &&
+          widget.initialProviderId!.isNotEmpty) {
+        ref.read(activeProviderIdProvider.notifier).state =
+            widget.initialProviderId;
+      }
       if (widget.initialModelId != null) {
         ref.read(activeModelIdProvider.notifier).state = widget.initialModelId;
       }
@@ -64,10 +84,29 @@ class _SessionsPanelScreenState extends ConsumerState<SessionsPanelScreen> {
           error: (_, _) => Text(l10n.sessionsTitle),
         ),
         actions: [
+          // spec 04 v2.0.0: deep link explicito con `providerId` para
+          // que el selector de modelos filtre por provider y no liste
+          // modelos de otros providers.
           IconButton(
             icon: const Icon(Icons.psychology_outlined),
-            tooltip: l10n.modelSelectorTitle,
-            onPressed: () => context.push('/models'),
+            tooltip: l10n.commonChangeModel,
+            onPressed: () {
+              final providerId = ref.read(activeProviderIdProvider);
+              if (providerId == null || providerId.isEmpty) {
+                // Fallback: si no tenemos providerId (deep link
+                // directo), vamos al selector de modelos global.
+                context.push('/models');
+              } else {
+                context.push('/models?providerId=$providerId');
+              }
+            },
+          ),
+          // spec 04 v2.0.0: volver al selector de proveedor permite
+          // cambiar de provider con un solo tap.
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: l10n.commonChangeProvider,
+            onPressed: () => context.go('/providers'),
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -113,6 +152,11 @@ class _SessionsPanelScreenState extends ConsumerState<SessionsPanelScreen> {
         .read(modelCatalogRepositoryProvider)
         .getById(modelId);
     if (model == null || !mounted) return;
+    // spec 04 v2.0.0: el `providerId` del use case sale del modelo
+    // resuelto (catalogo es la fuente de verdad). El
+    // `activeProviderIdProvider` del panel se usa solo para deep
+    // links de UI (botones "Cambiar modelo/provider"), no para
+    // resolver la sesion.
     final id = await ref
         .read(createSessionProvider)
         .call(modelId: model.id, providerId: model.providerId);

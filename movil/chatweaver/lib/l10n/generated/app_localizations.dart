@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'Proveedor no encontrado en el catalogo'**
   String get commonProviderNotFound;
 
+  /// No description provided for @commonChangeProvider.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar proveedor'**
+  String get commonChangeProvider;
+
+  /// No description provided for @commonChangeModel.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar modelo'**
+  String get commonChangeModel;
+
   /// No description provided for @connectionTestNoModelsError.
   ///
   /// In es, this message translates to:

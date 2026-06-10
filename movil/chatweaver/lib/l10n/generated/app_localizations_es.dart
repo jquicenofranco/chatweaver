@@ -275,6 +275,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get commonProviderNotFound => 'Proveedor no encontrado en el catalogo';
 
   @override
+  String get commonChangeProvider => 'Cambiar proveedor';
+
+  @override
+  String get commonChangeModel => 'Cambiar modelo';
+
+  @override
   String get connectionTestNoModelsError =>
       'No hay modelos disponibles para este proveedor';
 

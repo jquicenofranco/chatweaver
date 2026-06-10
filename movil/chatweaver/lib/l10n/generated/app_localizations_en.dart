@@ -275,6 +275,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonProviderNotFound => 'Provider not found in catalog';
 
   @override
+  String get commonChangeProvider => 'Change provider';
+
+  @override
+  String get commonChangeModel => 'Change model';
+
+  @override
   String get connectionTestNoModelsError =>
       'No models available for this provider';
 

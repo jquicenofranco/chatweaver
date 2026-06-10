@@ -132,6 +132,8 @@
   "commonClose": "Cerrar",
   "commonDefault": "Predeterminado",
   "commonProviderNotFound": "Proveedor no encontrado en el catalogo",
+  "commonChangeProvider": "Cambiar proveedor",
+  "commonChangeModel": "Cambiar modelo",
 
   "connectionTestNoModelsError": "No hay modelos disponibles para este proveedor",
   "chatSendError": "Error al enviar: {error}",

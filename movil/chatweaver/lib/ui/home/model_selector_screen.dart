@@ -118,7 +118,13 @@ class _ModelCard extends ConsumerWidget {
           style: const TextStyle(color: Colors.green, fontSize: 12),
         ),
       ),
-      onTap: () => context.push('/sessions?modelId=${model.id}'),
+      onTap: () => context.push(
+        // spec 04 v2.0.0: /sessions recibe providerId + modelId.
+        // providerId es la clave para que el panel sepa a que
+        // provider pertenece y arme el deep link de "Cambiar
+        // modelo" correctamente.
+        '/sessions?providerId=${model.providerId}&modelId=${model.id}',
+      ),
       onLongPress: () async {
         await ref
             .read(modelCatalogRepositoryProvider)

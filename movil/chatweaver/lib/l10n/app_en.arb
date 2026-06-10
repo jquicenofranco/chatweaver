@@ -131,6 +131,8 @@
   "commonClose": "Close",
   "commonDefault": "Default",
   "commonProviderNotFound": "Provider not found in catalog",
+  "commonChangeProvider": "Change provider",
+  "commonChangeModel": "Change model",
 
   "connectionTestNoModelsError": "No models available for this provider",
   "chatSendError": "Send error: {error}",
