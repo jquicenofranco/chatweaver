@@ -291,7 +291,7 @@ La app se organiza en **módulos top-level** en lugar de la estructura `core/` +
 | `message/` | Mensajes persistidos | `db/` |
 | `db/` | Base de datos Drift, secure storage | ninguno (infraestructura) |
 | `context/` | Strategy Pattern para gestión de contexto (truncado) | `llm/` |
-| `ui/` | Pantallas, widgets compartidos, navegación | `session/`, `message/`, `llm/` |
+| `ui/` | Pantallas, widgets compartidos, navegación | `session/`, `message/`, `llm/` (para `LLMFactory.supportedProviders` en `ProviderSelectorScreen`) |
 | `di/` | Inyección de dependencias global (Riverpod providers) | todos |
 | `l10n/` | Localización (archivos .arb) | ninguno |
 
@@ -390,6 +390,7 @@ lib/
 │
 ├── ui/                                # Pantallas principales y navegacion
 │   ├── home/
+│   │   ├── provider_selector_screen.dart  # NUEVO - lista de proveedores disponibles
 │   │   ├── model_selector_screen.dart
 │   │   ├── token_input_screen.dart
 │   │   └── connection_test_controller.dart
@@ -640,3 +641,12 @@ final uuidProvider = Provider<Uuid>((ref) => const Uuid());
 > **Nota:** los providers `sessionsRepositoryProvider` y `messagesRepositoryProvider` se muestran como placeholder. La implementacion concreta recibe `AppDatabase` (de `db/`) — se documenta completamente cuando se implemente `db/`.
 
 **Regla:** ningun caso de uso o widget debe hacer `import 'package:dio/dio.dart'` o instanciar `LLMFactory` directamente. Todo se obtiene por `ref.read(...)` o `ref.watch(...)`.
+
+---
+
+## CHANGE LOG
+
+| Version | Fecha | Autor | Cambio |
+|---|---|---|---|
+| 1.1.0 | 2026-06-09 | spec-architect-sdd | MINOR: anade ProviderSelectorScreen a la estructura de ui/home/. Aclara dependencia ui → llm para LLMFactory.supportedProviders. |
+| 1.0.0 | 2026-04-22 | spec-architect-sdd | Version inicial. |

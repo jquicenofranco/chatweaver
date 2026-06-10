@@ -36,7 +36,7 @@ llm/                                    # Modulo autocontenido
 // lib/llm/chat_message.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '../../spec/chat_message.freezed.dart';
+part 'chat_message.freezed.dart';
 
 enum ChatRole { system, user, assistant }
 
@@ -61,7 +61,7 @@ class ChatMessage with _$ChatMessage {
 // lib/llm/generate_request.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '../../spec/generate_request.freezed.dart';
+part 'generate_request.freezed.dart';
 
 @freezed
 class GenerateRequest with _$GenerateRequest {
@@ -79,9 +79,9 @@ class GenerateRequest with _$GenerateRequest {
 ```dart
 // lib/llm/generate_response.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../spec/chat_message.dart';
+import 'chat_message.dart';
 
-part '../../spec/generate_response.freezed.dart';
+part 'generate_response.freezed.dart';
 
 @freezed
 class GenerateResponseChunk with _$GenerateResponseChunk {
@@ -126,9 +126,9 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 
-import '../../spec/generate_request.dart';
-import '../../spec/generate_response.dart';
-import '../../spec/chat_message.dart';
+import 'generate_request.dart';
+import 'generate_response.dart';
+import 'chat_message.dart';
 
 /// Interfaz Strategy para proveedores de LLM.
 ///
@@ -197,7 +197,7 @@ abstract class ILLMProvider {
 // lib/llm/llm_factory.dart
 import 'package:dio/dio.dart';
 
-import '../../spec/illm_provider.dart';
+import 'illm_provider.dart';
 
 typedef LlmProviderBuilder = ILLMProvider Function({
   required String apiKey,
@@ -233,6 +233,12 @@ class LLMFactory {
   }
 
   /// Construye la instancia del provider para [providerId].
+  ///
+  /// El factory construye un `ILLMProvider` por (providerId, modelId). Sin embargo,
+  /// la API key (credential) se pide y se valida UNA SOLA VEZ por provider, no por
+  /// cada (providerId, modelId). El factory recibe la credential ya validada y la
+  /// inyecta en el provider; no le interesa de que modelo se trata para cuestiones
+  /// de autenticacion.
   ///
   /// Lanza [UnsupportedProviderException] si no hay builder registrado.
   ILLMProvider build({
@@ -358,8 +364,8 @@ LlmException _parseDioError(DioException e, StackTrace? st) {
 // lib/llm/providers/minimax/dto/minimax_request_dto.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '../../spec/minimax_request_dto.freezed.dart';
-part '../../spec/minimax_request_dto.g.dart';
+part 'minimax_request_dto.freezed.dart';
+part 'minimax_request_dto.g.dart';
 
 @freezed
 class MiniMaxRequestDTO with _$MiniMaxRequestDTO {
@@ -385,8 +391,8 @@ class MiniMaxMessageDTO with _$MiniMaxMessageDTO {
 // lib/llm/providers/minimax/dto/minimax_response_dto.dart
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part '../../spec/minimax_response_dto.freezed.dart';
-part '../../spec/minimax_response_dto.g.dart';
+part 'minimax_response_dto.freezed.dart';
+part 'minimax_response_dto.g.dart';
 
 @freezed
 class MiniMaxResponseDTO with _$MiniMaxResponseDTO {
@@ -557,9 +563,9 @@ class MiniMaxApiException implements Exception {
 
 ```dart
 // lib/llm/providers/minimax/minimax_adapter.dart
-import '../../../../generate_response.dart';
-import '../../../../chat_message.dart';
-import '../../dto/minimax_response_dto.dart';
+import 'package:chatweaver/llm/generate_response.dart';
+import 'package:chatweaver/llm/chat_message.dart';
+import 'package:chatweaver/llm/providers/minimax/dto/minimax_response_dto.dart';
 
 /// Adapter que traduce DTOs nativos de MiniMax a entidades de dominio.
 ///
@@ -620,14 +626,14 @@ import 'dart:io'; // SocketException
 
 import 'package:dio/dio.dart';
 
-import '../../../../illm_provider.dart';
-import '../../../../generate_request.dart';
-import '../../../../generate_response.dart';
-import '../../../../llm_exception.dart';
-import '../../../../chat_message.dart';
-import '../../spec/minimax_api_client.dart';
-import '../../spec/minimax_adapter.dart';
-import '../../spec/dto/minimax_request_dto.dart';
+import 'package:chatweaver/llm/illm_provider.dart';
+import 'package:chatweaver/llm/generate_request.dart';
+import 'package:chatweaver/llm/generate_response.dart';
+import 'package:chatweaver/llm/llm_exception.dart';
+import 'package:chatweaver/llm/chat_message.dart';
+import 'minimax_api_client.dart';
+import 'minimax_adapter.dart';
+import 'dto/minimax_request_dto.dart';
 
 /// Implementacion de [ILLMProvider] para MiniMax.
 ///
@@ -662,6 +668,10 @@ class MiniMaxProvider implements ILLMProvider {
 
   // ─── ILLMProvider ───────────────────────────────────────────────
 
+  /// El metodo `testConnection` requiere un `modelId` valido para hacer la
+  /// llamada de prueba, pero ese `modelId` es transitorio (solo se usa para
+  /// el test). La credencial resultante se guarda asociada al `providerId`,
+  /// no al `modelId` usado en el test.
   @override
   Future<String?> testConnection({required String apiKey}) async {
     try {
@@ -856,6 +866,12 @@ class MiniMaxProvider implements ILLMProvider {
 | `MiniMax-M2.7` | MiniMax M2.7 | 204,800 | Default. Buen balance calidad/costo. |
 | `MiniMax-M2.7-highspeed` | MiniMax M2.7 Highspeed | 204,800 | Variante mas rapida del M2.7. |
 
+> **Nota:** los modelos MiniMax M3, M2.7, M2.7-highspeed son tres puntos de acceso
+> diferentes al **MISMO proveedor** (mismo `providerId = "MiniMax"`). Comparten
+> la misma API key. Cuando el usuario ingrese su API key en
+> `TokenInputScreen`, esa misma key sirve para invocar cualquiera de los
+> tres modelos.
+
 > El seed historico uso los IDs `MiniMax-M` y `MiniMax-XL`, que **no
 > existen en la API real**. La migracion de DB `v1 -> v2`
 > (`app_database.dart::_replaceSeedModelConfigs`) los borra y los
@@ -907,6 +923,11 @@ formato. `finish_reason` puede ser `stop`, `length`, `tool_calls` o
 
 ### 11.5 Errores especificos que valen la pena conocer
 
+Un 401 (Unauthorized) puede deberse a: (a) API key invalida, (b) API key
+del provider equivocado (p. ej. key de OpenAI pegada en un provider
+MiniMax), o (c) dominio/baseUrl incorrecto. Ver `reference-minimax-api.md`
+en la memoria del proyecto para el caso particular de MiniMax.
+
 | HTTP | Cuerpo tipico | Mapping en `parseNetworkError` |
 |---|---|---|
 | 401 | `{"type":"error","error":{"type":"authorized_error", ...}}` | `AuthException` — "Token invalido o expirado" |
@@ -924,7 +945,18 @@ formato. `finish_reason` puede ser `stop`, `length`, `tool_calls` o
 
 ---
 
-## 12. Resumen de invariantes
+## 12. Convenciones y notas
+
+- **Credencial por provider, no por modelo:** la API key es UNICA por
+  proveedor. Un provider puede exponer N modelos con la misma key.
+- **ProviderId vs ModelId:** `providerId` identifica al proveedor LLM
+  (MiniMax, OpenAI, etc.). `modelId` identifica a un modelo concreto
+  dentro de un proveedor. La credencial se ata al primero; la eleccion
+  de chat se hace con el segundo.
+
+---
+
+## 13. Resumen de invariantes
 
 1. `ILLMProvider` es la unica interfaz publica del modulo `llm/`.
 2. Los DTOs nativos **nunca** cruzan la capa del provider hacia `domain` o `presentation`.
@@ -935,3 +967,12 @@ formato. `finish_reason` puede ser `stop`, `length`, `tool_calls` o
 7. **Los IDs de modelo y la base URL vienen de la documentacion oficial** — no se infieren.
    Cualquier anadido requiere confirmar primero contra
    `https://platform.minimax.io/docs`.
+
+---
+
+## 14. Change Log
+
+| Version | Fecha | Autor | Cambio |
+|---|---|---|---|
+| 1.1.0 | 2026-06-09 | spec-architect-sdd | MINOR: aclaracion documental — los modelos de un mismo proveedor (MiniMax M3, M2.7, M2.7-highspeed) comparten la misma API key. El factory recibe la credential ya validada asociada a providerId, no a modelId. Sin cambios de logica ni de interfaz publica. |
+| 1.0.0 | 2026-04-22 | spec-architect-sdd | Version inicial. |

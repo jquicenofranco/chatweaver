@@ -113,6 +113,10 @@ Metadatos de credenciales. **NO** almacena el token real.
 
 El token real vive en `flutter_secure_storage` bajo `secure_key`. La tabla es solo metadata.
 
+> **IMPORTANTE:** `provider_id` es la clave que identifica al proveedor. La API key
+> es UNICA por proveedor, no por modelo. Esta tabla NO debe tener una fila por
+> modelo; solo una fila por proveedor con credencial activa.
+
 ---
 
 ### 2.5 Clases Drift para las tablas
@@ -370,6 +374,10 @@ abstract class CredentialRepository {
 }
 ```
 
+> **Nota sobre `activeFor`:** esta query busca credenciales por `providerId`, no por
+> `modelId`. Refleja el hecho de que un proveedor puede tener N modelos pero una
+> sola credencial activa.
+
 ---
 
 ## 6. Manejo de tokens y contadores
@@ -390,6 +398,11 @@ El caso de uso `SendMessage` (en `session/domain/usecases/send_message.dart`) es
 - `flutter_secure_storage` cifra con Keychain (iOS) y Keystore (Android).
 - El token se carga **en memoria solo cuando se va a usar** y se descarta tras la request si el usuario decide "no recordar".
 - `CredentialRepository` (implementado en `db/`) es el unico punto de acceso.
+
+La credencial (API key) se almacena y asocia a nivel de **PROVEEDOR**, no de modelo.
+Varios modelos del mismo proveedor (p. ej. MiniMax M3, M2.7, M2.7-highspeed)
+comparten la misma credencial. El campo `provider_id` en la tabla
+`credential_handles` es la clave de agrupacion; no existe una credencial por modelo.
 
 ---
 
@@ -613,3 +626,21 @@ class ContextWindowManager {
 5. Las queries complejas (joins, agregaciones) se evaluan en SQL, no en memoria.
 6. `ContextStrategy` es intercambiable; en MVP solo existe `SlidingWindowStrategy`.
 7. El budget se calcula en el `ContextWindowManager`, no en el caso de uso.
+
+---
+
+## 11. Preguntas abiertas
+
+- **Por que la credencial esta asociada al provider y no al modelo?**
+  La API key es de la cuenta del usuario con el proveedor (MiniMax, OpenAI, etc.), y la
+  misma cuenta puede acceder a multiples modelos de ese proveedor. No tiene sentido
+  pedir la misma API key N veces para N modelos.
+
+---
+
+## 12. Change Log
+
+| Version | Fecha | Autor | Cambio |
+|---|---|---|---|
+| 1.1.0 | 2026-06-09 | spec-architect-sdd | MINOR: aclaracion documental — la credencial es a nivel de PROVEEDOR, no de modelo. Varios modelos del mismo proveedor comparten la misma API key. Sin cambios de logica ni de esquema. |
+| 1.0.0 | 2026-04-22 | spec-architect-sdd | Version inicial. |

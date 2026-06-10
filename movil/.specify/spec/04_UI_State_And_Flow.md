@@ -20,16 +20,21 @@
 ```
 SplashRoute (/)
         │
-        ▼ (redirect condicional)
+        ▼ (redirect → /providers)
 ┌──────────────────┐
-│  ModelSelector   │  Lista de modelos activos
+│ ProviderSelector │  Lista de proveedores disponibles (de LLMFactory)
 └────────┬─────────┘
-         │ tap modelo
+         │ tap proveedor
+         ▼ (verifica credencial)
+┌──────────────────┐
+│  TokenInput      │  Pegar API key + validar (recibe providerId)
+└────────┬─────────┘
+         │ test OK + credencial guardada
          ▼
 ┌──────────────────┐
-│  TokenInput      │  Pegar API key + validar
+│  ModelSelector   │  Lista de modelos DE ESE proveedor
 └────────┬─────────┘
-         │ test OK
+         │ tap modelo
          ▼
 ┌──────────────────┐
 │ SessionsPanel    │  CRUD de sesiones
@@ -43,7 +48,8 @@ SplashRoute (/)
 
 Acciones globales:
 
-- `AppBar` accion **"Modelos"** → vuelve a `ModelSelector`.
+- `AppBar` accion **"Cambiar provider"** → `/providers`.
+- `AppBar` accion **"Cambiar modelo"** → `/models?providerId={id}`.
 - `AppBar` accion **"Ajustes"** → gestiona credenciales, modelos deshabilitados, system prompts por defecto.
 
 ---
@@ -55,9 +61,10 @@ Acciones globales:
 | Ruta | Pantalla | Recibe |
 |---|---|---|
 | `/` | `SplashRoute` | — |
-| `/models` | `ModelSelectorScreen` | — |
-| `/token` | `TokenInputScreen` | `modelId` (query) |
-| `/sessions` | `SessionsPanelScreen` | `modelId` (query) |
+| `/providers` | `ProviderSelectorScreen` | — |
+| `/models` | `ModelSelectorScreen` | `providerId` (query, obligatorio) |
+| `/token` | `TokenInputScreen` | `providerId` (query, obligatorio) |
+| `/sessions` | `SessionsPanelScreen` | `providerId` (query), `modelId` (query) |
 | `/chat/:sessionId` | `ChatScreen` | `sessionId` (path) |
 | `/settings` | `SettingsScreen` | — |
 
@@ -67,55 +74,106 @@ Acciones globales:
 GoRoute(
   path: '/',
   redirect: (context, state) {
-    final container = ProviderScope.containerOf(context);
-    final hasAny = container.read(hasAnyCredentialProvider).valueOrNull ?? false;
-    return hasAny ? '/sessions' : '/models';
+    return '/providers';
   },
 )
 ```
 
-> Al primer arranque no hay credenciales → vamos a `/models`. Tras guardar el primer token, el siguiente arranque va directo a `/sessions`.
+> El usuario siempre pasa por la seleccion de provider para poder cambiarlo facilmente con un solo tap, incluso si ya tiene credenciales guardadas.
 
-### 3.3 Transicion entre credenciales y panel
+### 3.3 Transicion entre pantallas
 
-El flujo es: `/models` → tap → `/token?modelId=xxx` → validar → guardar → pushReplacement a `/sessions?modelId=xxx`.
+```
+/providers → tap MiniMax →
+  ¿existe credencial MiniMax?
+    → SÍ: /models?providerId=MiniMax
+    → NO: /token?providerId=MiniMax → OK → /models?providerId=MiniMax
+/models → tap modelo → /sessions?providerId=...&modelId=...
+/sessions → "Cambiar provider" → /providers
+/sessions → "Cambiar modelo" → /models?providerId={providerId actual}
+```
 
 ---
 
 ## 4. Pantallas en detalle
 
-### 4.1 `ModelSelectorScreen`
+### 4.1 `ProviderSelectorScreen`
 
-**Proposito:** elegir el modelo LLM a usar.
+**Proposito:** elegir el proveedor LLM.
 
 **Estado (Riverpod):**
 
 ```dart
-final availableModelsProvider = FutureProvider<List<ModelDefinition>>((ref) async {
-  return ref.read(modelCatalogRepositoryProvider).listEnabled();
+final availableProvidersProvider = Provider<List<ProviderDefinition>>((ref) {
+  return ref.read(llmProviderFactoryProvider).supportedProviders.map((id) {
+    return ProviderDefinition(id: id, name: id);
+  }).toList();
+});
+
+/// True si existe al menos una credencial guardada para el provider dado.
+final hasAnyCredentialForProviderProvider =
+    FutureProvider.family<bool, String>((ref, providerId) async {
+  final handles = await ref.watch(credentialRepositoryProvider).list();
+  return handles.any((h) => h.providerId == providerId);
 });
 ```
 
 **Layout:**
 
-- `AppBar` con titulo "Elegi un modelo" y accion `Icon(Icons.settings)` → `/settings`.
-- `ListView` de `ModelCard`:
-  - Icono del proveedor (placeholder para MVP).
-  - Nombre del modelo.
-  - Subtitulo: "200k tokens • streaming".
-  - Badge "free" / "paid".
-- Estado vacio: ilustracion + "No hay modelos habilitados. Toca Ajustes."
+- `AppBar` con titulo "Elegi un proveedor" y accion `Icon(Icons.settings)` → `/settings`.
+- `ListView` de `ProviderCard`:
+  - Icono del proveedor.
+  - Nombre del proveedor.
+  - Descripcion corta ("MiniMax AI", "OpenAI GPT", etc.).
+- Estado vacio: imposible en MVP (al menos MiniMax existe).
 
 **Acciones:**
 
-- Tap en `ModelCard` → `context.go('/token?modelId=${model.id}')`.
-- Long-press → bottom sheet con "Deshabilitar" (actualiza `model_configs.enabled`).
+- Tap en `ProviderCard` → consulta `hasAnyCredentialForProviderProvider(providerId)`:
+  - Si tiene credencial → `context.go('/models?providerId=${provider.id}')`.
+  - Si no → `context.go('/token?providerId=${provider.id}')`.
 
 ---
 
-### 4.2 `TokenInputScreen`
+### 4.2 `ModelSelectorScreen`
+
+**Proposito:** elegir el modelo LLM del proveedor activo.
+
+**Recibe:** `providerId` como query obligatorio.
+
+**Estado (Riverpod):**
+
+```dart
+final availableModelsProvider = FutureProvider.family<List<ModelDefinition>, String>(
+  (ref, providerId) async {
+    return ref.read(modelCatalogRepositoryProvider).listByProvider(providerId);
+  },
+);
+```
+
+**Layout:**
+
+- `AppBar` con titulo "Elegi un modelo" (provider name en subtitulo) y accion `Icon(Icons.settings)` → `/settings`.
+- `ListView` de `ModelCard`:
+  - Icono del proveedor.
+  - Nombre del modelo.
+  - Subtitulo: "200k tokens • streaming".
+  - Badge "free" / "paid".
+- Estado vacio: ilustracion + "No hay modelos para este proveedor."
+
+**Acciones:**
+
+- Tap en `ModelCard` → `context.go('/sessions?providerId={providerId}&modelId=${model.id}')`.
+- Long-press → bottom sheet con "Deshabilitar" (actualiza `model_configs.enabled`).
+- Si la consulta de credencial retorna null → redirigir a `/token?providerId={id}`.
+
+---
+
+### 4.3 `TokenInputScreen`
 
 **Proposito:** capturar y validar la API key del provider.
+
+**Recibe:** `providerId` como query (no `modelId`).
 
 **Estado:**
 
@@ -135,24 +193,27 @@ class ConnectionTestController extends StateNotifier<AsyncValue<void>> {
 
   Future<String?> test({
     required String apiKey,
-    required String modelId,
+    required String providerId,
   }) async {
     state = const AsyncLoading();
     try {
-      // 1. Cargar definicion del modelo desde el catalogo local.
-      final def = await _ref.read(modelCatalogRepositoryProvider).getById(modelId);
-      if (def == null) {
-        const err = 'Modelo no encontrado en el catalogo';
+      // 1. Obtener el primer modelo del catalogo del provider.
+      final models = await _ref
+          .read(modelCatalogRepositoryProvider)
+          .listByProvider(providerId);
+      final firstModel = models.firstOrNull;
+      if (firstModel == null) {
+        const err = 'No hay modelos disponibles para este proveedor';
         state = AsyncError(err, StackTrace.current);
         return err;
       }
 
       // 2. Construir el provider con la definicion real.
       final provider = _ref.read(llmProviderFactoryProvider).build(
-        providerId: def.providerId,
-        modelId: def.id,
+        providerId: providerId,
+        modelId: firstModel.id,
         apiKey: apiKey,
-        contextWindow: def.contextWindow,
+        contextWindow: firstModel.contextWindow,
         dio: _ref.read(dioProvider),
       );
 
@@ -174,7 +235,7 @@ class ConnectionTestController extends StateNotifier<AsyncValue<void>> {
 
 **Layout:**
 
-- Header con nombre del modelo y provider.
+- Header con nombre del provider (no del modelo).
 - `TextField` monoespaciado, password obscure, multilinea (los API keys son largos), `autocorrect: false`.
 - `SwitchListTile` "Recordar token" (default ON, persiste en secure storage).
 - Boton "Probar y continuar" (loading state mientras `test` corre).
@@ -182,33 +243,33 @@ class ConnectionTestController extends StateNotifier<AsyncValue<void>> {
 
 **Acciones:**
 
-- Submit → `controller.test(apiKey, modelId)`.
-- Exito → guarda en secure storage (si "Recordar" esta ON), `context.pushReplacement('/sessions?modelId=$modelId')`.
+- Submit → `controller.test(apiKey, providerId)`.
+- Exito → guarda en secure storage (si "Recordar" esta ON), `context.go('/models?providerId=$providerId')`.
 - Error → `SnackBar` con el mensaje devuelto por el tester.
 
 ---
 
-### 4.3 `SessionsPanelScreen`
+### 4.4 `SessionsPanelScreen`
 
 **Proposito:** CRUD de sesiones del modelo activo.
+
+**Recibe:** `providerId` y `modelId` como query.
 
 **Estado:**
 
 ```dart
-final activeModelIdProvider = StateProvider<String?>((_) => null);
-
-final sessionsStreamProvider = StreamProvider<List<ChatSession>>((ref) {
-  final modelId = ref.watch(activeModelIdProvider);
-  if (modelId == null) return Stream.value([]);
-  return ref.read(sessionsRepositoryProvider).watchByModel(modelId);
-});
+final sessionsStreamProvider = StreamProvider.family<List<ChatSession>, String>(
+  (ref, modelId) {
+    return ref.read(sessionsRepositoryProvider).watchByModel(modelId);
+  },
+);
 ```
 
 **Layout:**
 
 - `AppBar`:
   - Titulo: nombre del modelo activo.
-  - Acciones: "Modelos" (`/models`), "Ajustes" (`/settings`).
+  - Acciones: "Cambiar modelo" (`/models?providerId={providerId}`), "Cambiar provider" (`/providers`), "Ajustes" (`/settings`).
 - `ListView.separated` de `SessionTile`:
   - Titulo (editable in-place con long-press).
   - Subtitulo: "hace 2 h • 1.2k tokens" (formato `intl`).
@@ -260,7 +321,7 @@ final createSessionProvider = Provider<CreateSession>((ref) {
 
 ---
 
-### 4.4 `ChatScreen`
+### 4.5 `ChatScreen`
 
 **Proposito:** interfaz de chat con input libre, metricas de tokens y contexto.
 
@@ -400,7 +461,8 @@ class ChatController extends StateNotifier<ChatState> {
 
 | Pantalla | Estado | Componente |
 |---|---|---|
-| `ModelSelector` | sin modelos | `EmptyStateView` + "Ir a Ajustes" |
+| `ProviderSelector` | sin providers | `EmptyStateView` + "No hay proveedores disponibles" |
+| `ModelSelector` | sin modelos | `EmptyStateView` + "No hay modelos para este proveedor" |
 | `ModelSelector` | error al cargar | `ErrorView` con "Reintentar" |
 | `TokenInput` | test fallido | `SnackBar` con mensaje del tester |
 | `SessionsPanel` | sin sesiones | `EmptyStateView` + CTA "Nueva sesion" |
@@ -695,36 +757,47 @@ final projectedTokensProvider = Provider.autoDispose<int>((ref) {
 
 ### Flujo 1: Primer uso
 
-1. Arranca la app → splash → no hay credenciales → `/models`.
-2. Usuario tap "MiniMax M" → `/token?modelId=MiniMax-M`.
-3. Pega token → "Probar" → spinner → exito.
-4. SnackBar "Conectado" → navega a `/sessions?modelId=MiniMax-M`.
-5. Pantalla vacia con CTA → tap → crea sesion → `/chat/:id`.
-6. Escribe prompt (sin limite) → respuesta streaming via `provider.generateStream()`.
-7. Cierra la app. Estado preservado (sesion, mensajes, metricas).
+1. Arranca la app → splash → redirect a `/providers`.
+2. Usuario ve lista de proveedores, tap "MiniMax".
+3. No tiene credencial → `/token?providerId=MiniMax`.
+4. Pega token → "Probar" → usa primer modelo del catalogo de MiniMax.
+5. SnackBar "Conectado" → navega a `/models?providerId=MiniMax`.
+6. Tap en un modelo → `/sessions?providerId=MiniMax&modelId=...`.
+7. Empieza a chatear.
 
 ### Flujo 2: Vuelta a una sesion existente
 
-1. App abierta → splash → credencial existente → `/sessions`.
-2. Lista de sesiones anteriores (ordenadas por `last_message_at` desc).
-3. Tap en una → `/chat/:id`.
-4. Historial cargado al instante via `Stream`.
-5. Escribe nuevo mensaje → contexto previo se envia al provider (con truncado si excede el budget).
+1. App abierta → splash → redirect a `/providers`.
+2. Tap en el provider de la sesion anterior (ya tiene credencial) → `/models?providerId=...`.
+3. Tap en el modelo de la sesion → `/sessions?providerId=...&modelId=...`.
+4. Lista de sesiones anteriores (ordenadas por `last_message_at` desc).
+5. Tap en una → `/chat/:id`.
+6. Historial cargado al instante via `Stream`.
+7. Escribe nuevo mensaje → contexto previo se envia al provider (con truncado si excede el budget).
 
 ### Flujo 3: Cambio de modelo
 
-1. `SessionsPanel` → overflow o AppBar "Modelos" → `/models`.
-2. Elige otro modelo (incluso de otro provider) → `/token`.
-3. Si ya tiene credencial de ese provider, omite `/token` (futuro).
-4. Vuelve a `/sessions?modelId=nuevo`.
+1. Usuario en `/sessions` quiere cambiar de modelo.
+2. Tap en boton "Cambiar modelo" en la AppBar.
+3. Navega a `/models?providerId={providerId actual}`.
+4. Selecciona nuevo modelo → `/sessions?providerId=...&modelId={nuevo}`.
+5. Continua chateando con el nuevo modelo.
 
-### Flujo 4: Manejo de error de auth
+### Flujo 4: Cambio de provider
+
+1. Usuario en `/sessions` quiere cambiar de provider.
+2. Tap en boton "Cambiar provider" en la AppBar.
+3. Navega a `/providers`.
+4. Selecciona nuevo provider (con o sin credencial).
+5. Continua el flujo normal de token/modelo.
+
+### Flujo 5: Manejo de error de auth
 
 1. Usuario pega token expirado → `provider.testConnection()` devuelve "Token invalido o expirado".
 2. `SnackBar` con el mensaje.
 3. Usuario corrige y reintenta, o navega atras.
 
-### Flujo 5: Stop durante streaming
+### Flujo 6: Stop durante streaming
 
 1. Usuario envia prompt largo → respuesta streaming via `provider.generateStream()`.
 2. Tap "Stop" → `cancelToken.cancel('user_aborted')`.
@@ -742,3 +815,12 @@ final projectedTokensProvider = Provider.autoDispose<int>((ref) {
 5. El input de chat no tiene `maxLength` (requisito explícito).
 6. La app **no** muestra pantallas de login, splash de marca largo, ni onboarding obligatorio.
 7. La UI nunca ve `DioException` ni codigos de error HTTP crudos; `parseNetworkError` traduce todo a `LlmException.userMessage`.
+
+---
+
+## CHANGE LOG
+
+| Version | Fecha | Autor | Cambio |
+|---|---|---|---|
+| 2.0.0 | 2026-06-09 | spec-architect-sdd | MAJOR restructure del flujo de onboarding: ahora es ProviderSelector → TokenInput (providerId) → ModelSelector (filtrado por provider) → SessionsPanel. El token es por proveedor, no por modelo. El redirect de splash ahora va a /providers. TokenInputScreen recibe providerId en lugar de modelId. El test de conexion usa el primer modelo del catalogo del provider. |
+| 1.0.0 | 2026-04-22 | spec-architect-sdd | Version inicial. |
