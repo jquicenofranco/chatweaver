@@ -66,6 +66,21 @@ class $ModelConfigsTable extends ModelConfigs
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _supportsReasoningMeta = const VerificationMeta(
+    'supportsReasoning',
+  );
+  @override
+  late final GeneratedColumn<bool> supportsReasoning = GeneratedColumn<bool>(
+    'supports_reasoning',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("supports_reasoning" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _apiBaseUrlMeta = const VerificationMeta(
     'apiBaseUrl',
   );
@@ -110,6 +125,7 @@ class $ModelConfigsTable extends ModelConfigs
     displayName,
     contextWindow,
     supportsStreaming,
+    supportsReasoning,
     apiBaseUrl,
     enabled,
     createdAt,
@@ -170,6 +186,15 @@ class $ModelConfigsTable extends ModelConfigs
         ),
       );
     }
+    if (data.containsKey('supports_reasoning')) {
+      context.handle(
+        _supportsReasoningMeta,
+        supportsReasoning.isAcceptableOrUnknown(
+          data['supports_reasoning']!,
+          _supportsReasoningMeta,
+        ),
+      );
+    }
     if (data.containsKey('api_base_url')) {
       context.handle(
         _apiBaseUrlMeta,
@@ -222,6 +247,10 @@ class $ModelConfigsTable extends ModelConfigs
         DriftSqlType.bool,
         data['${effectivePrefix}supports_streaming'],
       )!,
+      supportsReasoning: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}supports_reasoning'],
+      )!,
       apiBaseUrl: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}api_base_url'],
@@ -249,6 +278,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
   final String displayName;
   final int contextWindow;
   final bool supportsStreaming;
+  final bool supportsReasoning;
   final String? apiBaseUrl;
   final bool enabled;
   final DateTime createdAt;
@@ -258,6 +288,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
     required this.displayName,
     required this.contextWindow,
     required this.supportsStreaming,
+    required this.supportsReasoning,
     this.apiBaseUrl,
     required this.enabled,
     required this.createdAt,
@@ -270,6 +301,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
     map['display_name'] = Variable<String>(displayName);
     map['context_window'] = Variable<int>(contextWindow);
     map['supports_streaming'] = Variable<bool>(supportsStreaming);
+    map['supports_reasoning'] = Variable<bool>(supportsReasoning);
     if (!nullToAbsent || apiBaseUrl != null) {
       map['api_base_url'] = Variable<String>(apiBaseUrl);
     }
@@ -285,6 +317,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
       displayName: Value(displayName),
       contextWindow: Value(contextWindow),
       supportsStreaming: Value(supportsStreaming),
+      supportsReasoning: Value(supportsReasoning),
       apiBaseUrl: apiBaseUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(apiBaseUrl),
@@ -304,6 +337,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
       displayName: serializer.fromJson<String>(json['displayName']),
       contextWindow: serializer.fromJson<int>(json['contextWindow']),
       supportsStreaming: serializer.fromJson<bool>(json['supportsStreaming']),
+      supportsReasoning: serializer.fromJson<bool>(json['supportsReasoning']),
       apiBaseUrl: serializer.fromJson<String?>(json['apiBaseUrl']),
       enabled: serializer.fromJson<bool>(json['enabled']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -318,6 +352,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
       'displayName': serializer.toJson<String>(displayName),
       'contextWindow': serializer.toJson<int>(contextWindow),
       'supportsStreaming': serializer.toJson<bool>(supportsStreaming),
+      'supportsReasoning': serializer.toJson<bool>(supportsReasoning),
       'apiBaseUrl': serializer.toJson<String?>(apiBaseUrl),
       'enabled': serializer.toJson<bool>(enabled),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -330,6 +365,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
     String? displayName,
     int? contextWindow,
     bool? supportsStreaming,
+    bool? supportsReasoning,
     Value<String?> apiBaseUrl = const Value.absent(),
     bool? enabled,
     DateTime? createdAt,
@@ -339,6 +375,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
     displayName: displayName ?? this.displayName,
     contextWindow: contextWindow ?? this.contextWindow,
     supportsStreaming: supportsStreaming ?? this.supportsStreaming,
+    supportsReasoning: supportsReasoning ?? this.supportsReasoning,
     apiBaseUrl: apiBaseUrl.present ? apiBaseUrl.value : this.apiBaseUrl,
     enabled: enabled ?? this.enabled,
     createdAt: createdAt ?? this.createdAt,
@@ -358,6 +395,9 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
       supportsStreaming: data.supportsStreaming.present
           ? data.supportsStreaming.value
           : this.supportsStreaming,
+      supportsReasoning: data.supportsReasoning.present
+          ? data.supportsReasoning.value
+          : this.supportsReasoning,
       apiBaseUrl: data.apiBaseUrl.present
           ? data.apiBaseUrl.value
           : this.apiBaseUrl,
@@ -374,6 +414,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
           ..write('displayName: $displayName, ')
           ..write('contextWindow: $contextWindow, ')
           ..write('supportsStreaming: $supportsStreaming, ')
+          ..write('supportsReasoning: $supportsReasoning, ')
           ..write('apiBaseUrl: $apiBaseUrl, ')
           ..write('enabled: $enabled, ')
           ..write('createdAt: $createdAt')
@@ -388,6 +429,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
     displayName,
     contextWindow,
     supportsStreaming,
+    supportsReasoning,
     apiBaseUrl,
     enabled,
     createdAt,
@@ -401,6 +443,7 @@ class ModelConfigRow extends DataClass implements Insertable<ModelConfigRow> {
           other.displayName == this.displayName &&
           other.contextWindow == this.contextWindow &&
           other.supportsStreaming == this.supportsStreaming &&
+          other.supportsReasoning == this.supportsReasoning &&
           other.apiBaseUrl == this.apiBaseUrl &&
           other.enabled == this.enabled &&
           other.createdAt == this.createdAt);
@@ -412,6 +455,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
   final Value<String> displayName;
   final Value<int> contextWindow;
   final Value<bool> supportsStreaming;
+  final Value<bool> supportsReasoning;
   final Value<String?> apiBaseUrl;
   final Value<bool> enabled;
   final Value<DateTime> createdAt;
@@ -422,6 +466,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
     this.displayName = const Value.absent(),
     this.contextWindow = const Value.absent(),
     this.supportsStreaming = const Value.absent(),
+    this.supportsReasoning = const Value.absent(),
     this.apiBaseUrl = const Value.absent(),
     this.enabled = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -433,6 +478,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
     required String displayName,
     required int contextWindow,
     this.supportsStreaming = const Value.absent(),
+    this.supportsReasoning = const Value.absent(),
     this.apiBaseUrl = const Value.absent(),
     this.enabled = const Value.absent(),
     required DateTime createdAt,
@@ -448,6 +494,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
     Expression<String>? displayName,
     Expression<int>? contextWindow,
     Expression<bool>? supportsStreaming,
+    Expression<bool>? supportsReasoning,
     Expression<String>? apiBaseUrl,
     Expression<bool>? enabled,
     Expression<DateTime>? createdAt,
@@ -459,6 +506,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
       if (displayName != null) 'display_name': displayName,
       if (contextWindow != null) 'context_window': contextWindow,
       if (supportsStreaming != null) 'supports_streaming': supportsStreaming,
+      if (supportsReasoning != null) 'supports_reasoning': supportsReasoning,
       if (apiBaseUrl != null) 'api_base_url': apiBaseUrl,
       if (enabled != null) 'enabled': enabled,
       if (createdAt != null) 'created_at': createdAt,
@@ -472,6 +520,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
     Value<String>? displayName,
     Value<int>? contextWindow,
     Value<bool>? supportsStreaming,
+    Value<bool>? supportsReasoning,
     Value<String?>? apiBaseUrl,
     Value<bool>? enabled,
     Value<DateTime>? createdAt,
@@ -483,6 +532,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
       displayName: displayName ?? this.displayName,
       contextWindow: contextWindow ?? this.contextWindow,
       supportsStreaming: supportsStreaming ?? this.supportsStreaming,
+      supportsReasoning: supportsReasoning ?? this.supportsReasoning,
       apiBaseUrl: apiBaseUrl ?? this.apiBaseUrl,
       enabled: enabled ?? this.enabled,
       createdAt: createdAt ?? this.createdAt,
@@ -508,6 +558,9 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
     if (supportsStreaming.present) {
       map['supports_streaming'] = Variable<bool>(supportsStreaming.value);
     }
+    if (supportsReasoning.present) {
+      map['supports_reasoning'] = Variable<bool>(supportsReasoning.value);
+    }
     if (apiBaseUrl.present) {
       map['api_base_url'] = Variable<String>(apiBaseUrl.value);
     }
@@ -531,6 +584,7 @@ class ModelConfigsCompanion extends UpdateCompanion<ModelConfigRow> {
           ..write('displayName: $displayName, ')
           ..write('contextWindow: $contextWindow, ')
           ..write('supportsStreaming: $supportsStreaming, ')
+          ..write('supportsReasoning: $supportsReasoning, ')
           ..write('apiBaseUrl: $apiBaseUrl, ')
           ..write('enabled: $enabled, ')
           ..write('createdAt: $createdAt, ')
@@ -1221,6 +1275,17 @@ class $MessagesTable extends Messages
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _reasoningMeta = const VerificationMeta(
+    'reasoning',
+  );
+  @override
+  late final GeneratedColumn<String> reasoning = GeneratedColumn<String>(
+    'reasoning',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _inputTokensMeta = const VerificationMeta(
     'inputTokens',
   );
@@ -1238,6 +1303,17 @@ class $MessagesTable extends Messages
   @override
   late final GeneratedColumn<int> outputTokens = GeneratedColumn<int>(
     'output_tokens',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _thinkingTokensMeta = const VerificationMeta(
+    'thinkingTokens',
+  );
+  @override
+  late final GeneratedColumn<int> thinkingTokens = GeneratedColumn<int>(
+    'thinking_tokens',
     aliasedName,
     true,
     type: DriftSqlType.int,
@@ -1291,8 +1367,10 @@ class $MessagesTable extends Messages
     sessionId,
     role,
     content,
+    reasoning,
     inputTokens,
     outputTokens,
+    thinkingTokens,
     status,
     errorMessage,
     createdAt,
@@ -1339,6 +1417,12 @@ class $MessagesTable extends Messages
     } else if (isInserting) {
       context.missing(_contentMeta);
     }
+    if (data.containsKey('reasoning')) {
+      context.handle(
+        _reasoningMeta,
+        reasoning.isAcceptableOrUnknown(data['reasoning']!, _reasoningMeta),
+      );
+    }
     if (data.containsKey('input_tokens')) {
       context.handle(
         _inputTokensMeta,
@@ -1354,6 +1438,15 @@ class $MessagesTable extends Messages
         outputTokens.isAcceptableOrUnknown(
           data['output_tokens']!,
           _outputTokensMeta,
+        ),
+      );
+    }
+    if (data.containsKey('thinking_tokens')) {
+      context.handle(
+        _thinkingTokensMeta,
+        thinkingTokens.isAcceptableOrUnknown(
+          data['thinking_tokens']!,
+          _thinkingTokensMeta,
         ),
       );
     }
@@ -1416,6 +1509,10 @@ class $MessagesTable extends Messages
         DriftSqlType.string,
         data['${effectivePrefix}content'],
       )!,
+      reasoning: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reasoning'],
+      ),
       inputTokens: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}input_tokens'],
@@ -1423,6 +1520,10 @@ class $MessagesTable extends Messages
       outputTokens: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}output_tokens'],
+      ),
+      thinkingTokens: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}thinking_tokens'],
       ),
       status: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
@@ -1454,8 +1555,17 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
   final String sessionId;
   final String role;
   final String content;
+
+  /// Trace de razonamiento del modelo (separado de `content`).
+  /// NUNCA se mezcla con la respuesta final (C-BIZ-01).
+  final String? reasoning;
   final int? inputTokens;
   final int? outputTokens;
+
+  /// Thinking tokens autoritativos del provider. Distinto de
+  /// `outputTokens` (C-TECH-06). Null para mensajes de modelos
+  /// no-thinking o sin reporte del provider.
+  final int? thinkingTokens;
   final String status;
   final String? errorMessage;
   final DateTime createdAt;
@@ -1465,8 +1575,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
     required this.sessionId,
     required this.role,
     required this.content,
+    this.reasoning,
     this.inputTokens,
     this.outputTokens,
+    this.thinkingTokens,
     required this.status,
     this.errorMessage,
     required this.createdAt,
@@ -1479,11 +1591,17 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
     map['session_id'] = Variable<String>(sessionId);
     map['role'] = Variable<String>(role);
     map['content'] = Variable<String>(content);
+    if (!nullToAbsent || reasoning != null) {
+      map['reasoning'] = Variable<String>(reasoning);
+    }
     if (!nullToAbsent || inputTokens != null) {
       map['input_tokens'] = Variable<int>(inputTokens);
     }
     if (!nullToAbsent || outputTokens != null) {
       map['output_tokens'] = Variable<int>(outputTokens);
+    }
+    if (!nullToAbsent || thinkingTokens != null) {
+      map['thinking_tokens'] = Variable<int>(thinkingTokens);
     }
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || errorMessage != null) {
@@ -1502,12 +1620,18 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
       sessionId: Value(sessionId),
       role: Value(role),
       content: Value(content),
+      reasoning: reasoning == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reasoning),
       inputTokens: inputTokens == null && nullToAbsent
           ? const Value.absent()
           : Value(inputTokens),
       outputTokens: outputTokens == null && nullToAbsent
           ? const Value.absent()
           : Value(outputTokens),
+      thinkingTokens: thinkingTokens == null && nullToAbsent
+          ? const Value.absent()
+          : Value(thinkingTokens),
       status: Value(status),
       errorMessage: errorMessage == null && nullToAbsent
           ? const Value.absent()
@@ -1529,8 +1653,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
       sessionId: serializer.fromJson<String>(json['sessionId']),
       role: serializer.fromJson<String>(json['role']),
       content: serializer.fromJson<String>(json['content']),
+      reasoning: serializer.fromJson<String?>(json['reasoning']),
       inputTokens: serializer.fromJson<int?>(json['inputTokens']),
       outputTokens: serializer.fromJson<int?>(json['outputTokens']),
+      thinkingTokens: serializer.fromJson<int?>(json['thinkingTokens']),
       status: serializer.fromJson<String>(json['status']),
       errorMessage: serializer.fromJson<String?>(json['errorMessage']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -1545,8 +1671,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
       'sessionId': serializer.toJson<String>(sessionId),
       'role': serializer.toJson<String>(role),
       'content': serializer.toJson<String>(content),
+      'reasoning': serializer.toJson<String?>(reasoning),
       'inputTokens': serializer.toJson<int?>(inputTokens),
       'outputTokens': serializer.toJson<int?>(outputTokens),
+      'thinkingTokens': serializer.toJson<int?>(thinkingTokens),
       'status': serializer.toJson<String>(status),
       'errorMessage': serializer.toJson<String?>(errorMessage),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -1559,8 +1687,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
     String? sessionId,
     String? role,
     String? content,
+    Value<String?> reasoning = const Value.absent(),
     Value<int?> inputTokens = const Value.absent(),
     Value<int?> outputTokens = const Value.absent(),
+    Value<int?> thinkingTokens = const Value.absent(),
     String? status,
     Value<String?> errorMessage = const Value.absent(),
     DateTime? createdAt,
@@ -1570,8 +1700,12 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
     sessionId: sessionId ?? this.sessionId,
     role: role ?? this.role,
     content: content ?? this.content,
+    reasoning: reasoning.present ? reasoning.value : this.reasoning,
     inputTokens: inputTokens.present ? inputTokens.value : this.inputTokens,
     outputTokens: outputTokens.present ? outputTokens.value : this.outputTokens,
+    thinkingTokens: thinkingTokens.present
+        ? thinkingTokens.value
+        : this.thinkingTokens,
     status: status ?? this.status,
     errorMessage: errorMessage.present ? errorMessage.value : this.errorMessage,
     createdAt: createdAt ?? this.createdAt,
@@ -1583,12 +1717,16 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
       sessionId: data.sessionId.present ? data.sessionId.value : this.sessionId,
       role: data.role.present ? data.role.value : this.role,
       content: data.content.present ? data.content.value : this.content,
+      reasoning: data.reasoning.present ? data.reasoning.value : this.reasoning,
       inputTokens: data.inputTokens.present
           ? data.inputTokens.value
           : this.inputTokens,
       outputTokens: data.outputTokens.present
           ? data.outputTokens.value
           : this.outputTokens,
+      thinkingTokens: data.thinkingTokens.present
+          ? data.thinkingTokens.value
+          : this.thinkingTokens,
       status: data.status.present ? data.status.value : this.status,
       errorMessage: data.errorMessage.present
           ? data.errorMessage.value
@@ -1607,8 +1745,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
           ..write('sessionId: $sessionId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
+          ..write('reasoning: $reasoning, ')
           ..write('inputTokens: $inputTokens, ')
           ..write('outputTokens: $outputTokens, ')
+          ..write('thinkingTokens: $thinkingTokens, ')
           ..write('status: $status, ')
           ..write('errorMessage: $errorMessage, ')
           ..write('createdAt: $createdAt, ')
@@ -1623,8 +1763,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
     sessionId,
     role,
     content,
+    reasoning,
     inputTokens,
     outputTokens,
+    thinkingTokens,
     status,
     errorMessage,
     createdAt,
@@ -1638,8 +1780,10 @@ class MessageRow extends DataClass implements Insertable<MessageRow> {
           other.sessionId == this.sessionId &&
           other.role == this.role &&
           other.content == this.content &&
+          other.reasoning == this.reasoning &&
           other.inputTokens == this.inputTokens &&
           other.outputTokens == this.outputTokens &&
+          other.thinkingTokens == this.thinkingTokens &&
           other.status == this.status &&
           other.errorMessage == this.errorMessage &&
           other.createdAt == this.createdAt &&
@@ -1651,8 +1795,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
   final Value<String> sessionId;
   final Value<String> role;
   final Value<String> content;
+  final Value<String?> reasoning;
   final Value<int?> inputTokens;
   final Value<int?> outputTokens;
+  final Value<int?> thinkingTokens;
   final Value<String> status;
   final Value<String?> errorMessage;
   final Value<DateTime> createdAt;
@@ -1663,8 +1809,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
     this.sessionId = const Value.absent(),
     this.role = const Value.absent(),
     this.content = const Value.absent(),
+    this.reasoning = const Value.absent(),
     this.inputTokens = const Value.absent(),
     this.outputTokens = const Value.absent(),
+    this.thinkingTokens = const Value.absent(),
     this.status = const Value.absent(),
     this.errorMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1676,8 +1824,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
     required String sessionId,
     required String role,
     required String content,
+    this.reasoning = const Value.absent(),
     this.inputTokens = const Value.absent(),
     this.outputTokens = const Value.absent(),
+    this.thinkingTokens = const Value.absent(),
     required String status,
     this.errorMessage = const Value.absent(),
     required DateTime createdAt,
@@ -1694,8 +1844,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
     Expression<String>? sessionId,
     Expression<String>? role,
     Expression<String>? content,
+    Expression<String>? reasoning,
     Expression<int>? inputTokens,
     Expression<int>? outputTokens,
+    Expression<int>? thinkingTokens,
     Expression<String>? status,
     Expression<String>? errorMessage,
     Expression<DateTime>? createdAt,
@@ -1707,8 +1859,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
       if (sessionId != null) 'session_id': sessionId,
       if (role != null) 'role': role,
       if (content != null) 'content': content,
+      if (reasoning != null) 'reasoning': reasoning,
       if (inputTokens != null) 'input_tokens': inputTokens,
       if (outputTokens != null) 'output_tokens': outputTokens,
+      if (thinkingTokens != null) 'thinking_tokens': thinkingTokens,
       if (status != null) 'status': status,
       if (errorMessage != null) 'error_message': errorMessage,
       if (createdAt != null) 'created_at': createdAt,
@@ -1722,8 +1876,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
     Value<String>? sessionId,
     Value<String>? role,
     Value<String>? content,
+    Value<String?>? reasoning,
     Value<int?>? inputTokens,
     Value<int?>? outputTokens,
+    Value<int?>? thinkingTokens,
     Value<String>? status,
     Value<String?>? errorMessage,
     Value<DateTime>? createdAt,
@@ -1735,8 +1891,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
       sessionId: sessionId ?? this.sessionId,
       role: role ?? this.role,
       content: content ?? this.content,
+      reasoning: reasoning ?? this.reasoning,
       inputTokens: inputTokens ?? this.inputTokens,
       outputTokens: outputTokens ?? this.outputTokens,
+      thinkingTokens: thinkingTokens ?? this.thinkingTokens,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       createdAt: createdAt ?? this.createdAt,
@@ -1760,11 +1918,17 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
     if (content.present) {
       map['content'] = Variable<String>(content.value);
     }
+    if (reasoning.present) {
+      map['reasoning'] = Variable<String>(reasoning.value);
+    }
     if (inputTokens.present) {
       map['input_tokens'] = Variable<int>(inputTokens.value);
     }
     if (outputTokens.present) {
       map['output_tokens'] = Variable<int>(outputTokens.value);
+    }
+    if (thinkingTokens.present) {
+      map['thinking_tokens'] = Variable<int>(thinkingTokens.value);
     }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
@@ -1791,8 +1955,10 @@ class MessagesCompanion extends UpdateCompanion<MessageRow> {
           ..write('sessionId: $sessionId, ')
           ..write('role: $role, ')
           ..write('content: $content, ')
+          ..write('reasoning: $reasoning, ')
           ..write('inputTokens: $inputTokens, ')
           ..write('outputTokens: $outputTokens, ')
+          ..write('thinkingTokens: $thinkingTokens, ')
           ..write('status: $status, ')
           ..write('errorMessage: $errorMessage, ')
           ..write('createdAt: $createdAt, ')
@@ -2265,6 +2431,7 @@ typedef $$ModelConfigsTableCreateCompanionBuilder =
       required String displayName,
       required int contextWindow,
       Value<bool> supportsStreaming,
+      Value<bool> supportsReasoning,
       Value<String?> apiBaseUrl,
       Value<bool> enabled,
       required DateTime createdAt,
@@ -2277,6 +2444,7 @@ typedef $$ModelConfigsTableUpdateCompanionBuilder =
       Value<String> displayName,
       Value<int> contextWindow,
       Value<bool> supportsStreaming,
+      Value<bool> supportsReasoning,
       Value<String?> apiBaseUrl,
       Value<bool> enabled,
       Value<DateTime> createdAt,
@@ -2337,6 +2505,11 @@ class $$ModelConfigsTableFilterComposer
 
   ColumnFilters<bool> get supportsStreaming => $composableBuilder(
     column: $table.supportsStreaming,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get supportsReasoning => $composableBuilder(
+    column: $table.supportsReasoning,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2415,6 +2588,11 @@ class $$ModelConfigsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get supportsReasoning => $composableBuilder(
+    column: $table.supportsReasoning,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get apiBaseUrl => $composableBuilder(
     column: $table.apiBaseUrl,
     builder: (column) => ColumnOrderings(column),
@@ -2460,6 +2638,11 @@ class $$ModelConfigsTableAnnotationComposer
 
   GeneratedColumn<bool> get supportsStreaming => $composableBuilder(
     column: $table.supportsStreaming,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get supportsReasoning => $composableBuilder(
+    column: $table.supportsReasoning,
     builder: (column) => column,
   );
 
@@ -2533,6 +2716,7 @@ class $$ModelConfigsTableTableManager
                 Value<String> displayName = const Value.absent(),
                 Value<int> contextWindow = const Value.absent(),
                 Value<bool> supportsStreaming = const Value.absent(),
+                Value<bool> supportsReasoning = const Value.absent(),
                 Value<String?> apiBaseUrl = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -2543,6 +2727,7 @@ class $$ModelConfigsTableTableManager
                 displayName: displayName,
                 contextWindow: contextWindow,
                 supportsStreaming: supportsStreaming,
+                supportsReasoning: supportsReasoning,
                 apiBaseUrl: apiBaseUrl,
                 enabled: enabled,
                 createdAt: createdAt,
@@ -2555,6 +2740,7 @@ class $$ModelConfigsTableTableManager
                 required String displayName,
                 required int contextWindow,
                 Value<bool> supportsStreaming = const Value.absent(),
+                Value<bool> supportsReasoning = const Value.absent(),
                 Value<String?> apiBaseUrl = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
                 required DateTime createdAt,
@@ -2565,6 +2751,7 @@ class $$ModelConfigsTableTableManager
                 displayName: displayName,
                 contextWindow: contextWindow,
                 supportsStreaming: supportsStreaming,
+                supportsReasoning: supportsReasoning,
                 apiBaseUrl: apiBaseUrl,
                 enabled: enabled,
                 createdAt: createdAt,
@@ -3140,8 +3327,10 @@ typedef $$MessagesTableCreateCompanionBuilder =
       required String sessionId,
       required String role,
       required String content,
+      Value<String?> reasoning,
       Value<int?> inputTokens,
       Value<int?> outputTokens,
+      Value<int?> thinkingTokens,
       required String status,
       Value<String?> errorMessage,
       required DateTime createdAt,
@@ -3154,8 +3343,10 @@ typedef $$MessagesTableUpdateCompanionBuilder =
       Value<String> sessionId,
       Value<String> role,
       Value<String> content,
+      Value<String?> reasoning,
       Value<int?> inputTokens,
       Value<int?> outputTokens,
+      Value<int?> thinkingTokens,
       Value<String> status,
       Value<String?> errorMessage,
       Value<DateTime> createdAt,
@@ -3209,6 +3400,11 @@ class $$MessagesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get reasoning => $composableBuilder(
+    column: $table.reasoning,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get inputTokens => $composableBuilder(
     column: $table.inputTokens,
     builder: (column) => ColumnFilters(column),
@@ -3216,6 +3412,11 @@ class $$MessagesTableFilterComposer
 
   ColumnFilters<int> get outputTokens => $composableBuilder(
     column: $table.outputTokens,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get thinkingTokens => $composableBuilder(
+    column: $table.thinkingTokens,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3287,6 +3488,11 @@ class $$MessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get reasoning => $composableBuilder(
+    column: $table.reasoning,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get inputTokens => $composableBuilder(
     column: $table.inputTokens,
     builder: (column) => ColumnOrderings(column),
@@ -3294,6 +3500,11 @@ class $$MessagesTableOrderingComposer
 
   ColumnOrderings<int> get outputTokens => $composableBuilder(
     column: $table.outputTokens,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get thinkingTokens => $composableBuilder(
+    column: $table.thinkingTokens,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -3359,6 +3570,9 @@ class $$MessagesTableAnnotationComposer
   GeneratedColumn<String> get content =>
       $composableBuilder(column: $table.content, builder: (column) => column);
 
+  GeneratedColumn<String> get reasoning =>
+      $composableBuilder(column: $table.reasoning, builder: (column) => column);
+
   GeneratedColumn<int> get inputTokens => $composableBuilder(
     column: $table.inputTokens,
     builder: (column) => column,
@@ -3366,6 +3580,11 @@ class $$MessagesTableAnnotationComposer
 
   GeneratedColumn<int> get outputTokens => $composableBuilder(
     column: $table.outputTokens,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get thinkingTokens => $composableBuilder(
+    column: $table.thinkingTokens,
     builder: (column) => column,
   );
 
@@ -3441,8 +3660,10 @@ class $$MessagesTableTableManager
                 Value<String> sessionId = const Value.absent(),
                 Value<String> role = const Value.absent(),
                 Value<String> content = const Value.absent(),
+                Value<String?> reasoning = const Value.absent(),
                 Value<int?> inputTokens = const Value.absent(),
                 Value<int?> outputTokens = const Value.absent(),
+                Value<int?> thinkingTokens = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> errorMessage = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -3453,8 +3674,10 @@ class $$MessagesTableTableManager
                 sessionId: sessionId,
                 role: role,
                 content: content,
+                reasoning: reasoning,
                 inputTokens: inputTokens,
                 outputTokens: outputTokens,
+                thinkingTokens: thinkingTokens,
                 status: status,
                 errorMessage: errorMessage,
                 createdAt: createdAt,
@@ -3467,8 +3690,10 @@ class $$MessagesTableTableManager
                 required String sessionId,
                 required String role,
                 required String content,
+                Value<String?> reasoning = const Value.absent(),
                 Value<int?> inputTokens = const Value.absent(),
                 Value<int?> outputTokens = const Value.absent(),
+                Value<int?> thinkingTokens = const Value.absent(),
                 required String status,
                 Value<String?> errorMessage = const Value.absent(),
                 required DateTime createdAt,
@@ -3479,8 +3704,10 @@ class $$MessagesTableTableManager
                 sessionId: sessionId,
                 role: role,
                 content: content,
+                reasoning: reasoning,
                 inputTokens: inputTokens,
                 outputTokens: outputTokens,
+                thinkingTokens: thinkingTokens,
                 status: status,
                 errorMessage: errorMessage,
                 createdAt: createdAt,

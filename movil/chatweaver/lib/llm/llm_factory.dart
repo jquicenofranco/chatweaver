@@ -3,12 +3,13 @@ import 'package:dio/dio.dart';
 import 'illm_provider.dart';
 
 /// Builder que produce un [ILLMProvider] ya configurado.
-typedef LlmProviderBuilder = ILLMProvider Function({
-  required String apiKey,
-  required String modelId,
-  required int contextWindow,
-  required Dio dio,
-});
+typedef LlmProviderBuilder =
+    ILLMProvider Function({
+      required String apiKey,
+      required String modelId,
+      required int contextWindow,
+      required Dio dio,
+    });
 
 class UnsupportedProviderException implements Exception {
   const UnsupportedProviderException(this.providerId);

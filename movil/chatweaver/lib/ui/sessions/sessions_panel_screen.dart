@@ -109,12 +109,13 @@ class _SessionsPanelScreenState extends ConsumerState<SessionsPanelScreen> {
   Future<void> _createSession() async {
     final modelId = ref.read(activeModelIdProvider);
     if (modelId == null) return;
-    final model = await ref.read(modelCatalogRepositoryProvider).getById(modelId);
+    final model = await ref
+        .read(modelCatalogRepositoryProvider)
+        .getById(modelId);
     if (model == null || !mounted) return;
-    final id = await ref.read(createSessionProvider).call(
-          modelId: model.id,
-          providerId: model.providerId,
-        );
+    final id = await ref
+        .read(createSessionProvider)
+        .call(modelId: model.id, providerId: model.providerId);
     if (!mounted) return;
     unawaited(context.push('/chat/$id'));
   }
@@ -149,7 +150,11 @@ class _SessionTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _onMenu(BuildContext context, WidgetRef ref, String action) async {
+  Future<void> _onMenu(
+    BuildContext context,
+    WidgetRef ref,
+    String action,
+  ) async {
     final l10n = AppLocalizations.of(context);
     switch (action) {
       case 'rename':

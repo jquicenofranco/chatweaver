@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:chatweaver/context/context_window_manager.dart';
@@ -12,12 +13,18 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'chat_controller.freezed.dart';
 
+/// Estado del chat. **Spec 05 (T-22)**: `reasoningByMessageId` es
+/// un espejo incremental del `Message.reasoning` para que la UI
+/// pueda acceder al trace de un mensaje por id sin re-iterar la
+/// lista completa. La fuente canonica sigue siendo `Message.reasoning`
+/// desde el `messagesStreamProvider`; este map es un derivado.
 @freezed
 class ChatState with _$ChatState {
   const factory ChatState({
     @Default(<Message>[]) List<Message> messages,
     @Default(false) bool isStreaming,
     @Default(TokenUsage()) TokenUsage sessionUsage,
+    @Default(<String, String>{}) Map<String, String> reasoningByMessageId,
     @Default('') String draft,
     String? error,
   }) = _ChatState;
@@ -36,10 +43,8 @@ class ChatState with _$ChatState {
 /// `StateError("No se pudo resolver el provider LLM para ...")`.
 /// Los errores se propagan a [ChatState.error] en vez de throwear.
 class ChatController extends StateNotifier<ChatState> {
-  ChatController({
-    required this.sessionId,
-    required this.ref,
-  }) : super(const ChatState());
+  ChatController({required this.sessionId, required this.ref})
+    : super(const ChatState());
 
   final String sessionId;
   final Ref ref;
@@ -55,13 +60,19 @@ class ChatController extends StateNotifier<ChatState> {
   /// Ajustes, queremos que el siguiente `send` use la nueva. El
   /// `autoDispose` del provider garantiza que el controller se
   /// reconstruye si la sesion cambia.
+  ///
+  /// **Spec 05 (T-16)**: inyecta `ModelCatalogRepository` para que
+  /// `SendMessage` pueda resolver `supportsReasoning` del modelo
+  /// activo.
   Future<SendMessage> _resolveSendMessage() async {
-    final ILLMProvider provider =
-        await ref.read(activeLlmProviderProvider(sessionId).future);
+    final ILLMProvider provider = await ref.read(
+      activeLlmProviderProvider(sessionId).future,
+    );
     return SendMessage(
       provider: provider,
       sessions: ref.read(sessionsRepositoryProvider),
       messages: ref.read(messagesRepositoryProvider),
+      models: ref.read(modelCatalogRepositoryProvider),
       context: ContextWindowManager(
         provider: provider,
         contextWindow: provider.contextWindow,
@@ -108,12 +119,29 @@ class ChatController extends StateNotifier<ChatState> {
       ),
     );
   }
+
+  /// **Spec 05 (T-22)**: sincroniza el map `reasoningByMessageId`
+  /// desde la lista de mensajes. Llamado por la UI despues de cada
+  /// `messagesStreamProvider` emit (el `ChatScreen` puede hacer
+  /// `controller.syncFromMessages(messages)` en un listener).
+  ///
+  /// Se usa `mapEquals` para evitar rebuilds innecesarios cuando el
+  /// contenido no cambio (ej. un update de status de un mensaje
+  /// que no es del assistant).
+  void syncFromMessages(List<Message> messages) {
+    final next = <String, String>{};
+    for (final m in messages) {
+      if (m.reasoning != null && m.reasoning!.isNotEmpty) {
+        next[m.id] = m.reasoning!;
+      }
+    }
+    if (!mapEquals(state.reasoningByMessageId, next)) {
+      state = state.copyWith(reasoningByMessageId: next);
+    }
+  }
 }
 
 final chatControllerProvider = StateNotifierProvider.autoDispose
     .family<ChatController, ChatState, String>(
-  (ref, sessionId) => ChatController(
-    sessionId: sessionId,
-    ref: ref,
-  ),
-);
+      (ref, sessionId) => ChatController(sessionId: sessionId, ref: ref),
+    );

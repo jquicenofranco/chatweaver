@@ -5,11 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 /// Calculador determinista para tests: 1 token cada 4 chars.
 int _calculateTokens(String text) => (text.length / 4).ceil();
 
-ChatMessage _msg(String id, String content) => ChatMessage(
-      id: id,
-      role: ChatRole.user,
-      content: content,
-    );
+ChatMessage _msg(String id, String content) =>
+    ChatMessage(id: id, role: ChatRole.user, content: content);
 
 void main() {
   group('SlidingWindowStrategy', () {
@@ -35,10 +32,7 @@ void main() {
       // budget 50 -> effective 45 (10% margin)
       // Cada mensaje: 4 tokens + 4 overhead = 8 tokens
       // Esperado: entran 5 de 10 mensajes
-      final messages = List.generate(
-        10,
-        (i) => _msg('m$i', 'A' * 16),
-      );
+      final messages = List.generate(10, (i) => _msg('m$i', 'A' * 16));
 
       final result = strategy.apply(
         messages: messages,

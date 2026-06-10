@@ -11,14 +11,13 @@ class SessionsDao extends DatabaseAccessor<AppDatabase>
   SessionsDao(super.db);
 
   Stream<List<SessionRow>> watchAll() =>
-      (select(sessions)
-            ..orderBy([
-              (t) => OrderingTerm(
-                    expression: t.lastMessageAt,
-                    mode: OrderingMode.desc,
-                    nulls: NullsOrder.last,
-                  ),
-            ]))
+      (select(sessions)..orderBy([
+            (t) => OrderingTerm(
+              expression: t.lastMessageAt,
+              mode: OrderingMode.desc,
+              nulls: NullsOrder.last,
+            ),
+          ]))
           .watch();
 
   Stream<List<SessionRow>> watchByModel(String modelId) =>
@@ -26,32 +25,35 @@ class SessionsDao extends DatabaseAccessor<AppDatabase>
             ..where((t) => t.modelId.equals(modelId))
             ..orderBy([
               (t) => OrderingTerm(
-                    expression: t.lastMessageAt,
-                    mode: OrderingMode.desc,
-                    nulls: NullsOrder.last,
-                  ),
+                expression: t.lastMessageAt,
+                mode: OrderingMode.desc,
+                nulls: NullsOrder.last,
+              ),
             ]))
           .watch();
 
   Stream<List<SessionRow>> watchByProvider(String providerId) =>
-      (select(sessions)..where((t) => t.providerId.equals(providerId)))
-          .watch();
+      (select(sessions)..where((t) => t.providerId.equals(providerId))).watch();
 
   Future<List<SessionRow>> listAll() => select(sessions).get();
 
   Future<SessionRow?> getById(String id) =>
       (select(sessions)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<void> insertRow(SessionsCompanion row) =>
-      into(sessions).insert(row);
+  Future<void> insertRow(SessionsCompanion row) => into(sessions).insert(row);
 
   Future<void> updateTitle(String id, String title) =>
-      (update(sessions)..where((t) => t.id.equals(id)))
-          .write(SessionsCompanion(title: Value(title), updatedAt: Value(DateTime.now())));
+      (update(sessions)..where((t) => t.id.equals(id))).write(
+        SessionsCompanion(
+          title: Value(title),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
 
   Future<void> updateSystemPrompt(String id, String? systemPrompt) =>
-      (update(sessions)..where((t) => t.id.equals(id)))
-          .write(SessionsCompanion(systemPrompt: Value(systemPrompt)));
+      (update(sessions)..where((t) => t.id.equals(id))).write(
+        SessionsCompanion(systemPrompt: Value(systemPrompt)),
+      );
 
   Future<void> deleteById(String id) =>
       (delete(sessions)..where((t) => t.id.equals(id))).go();

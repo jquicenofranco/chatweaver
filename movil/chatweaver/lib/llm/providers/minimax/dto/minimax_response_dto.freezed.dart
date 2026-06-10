@@ -751,6 +751,8 @@ mixin _$MiniMaxUsageDTO {
   int? get completionTokens => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_tokens')
   int? get totalTokens => throw _privateConstructorUsedError;
+  @JsonKey(name: 'reasoning_tokens')
+  int? get reasoningTokens => throw _privateConstructorUsedError;
 
   /// Serializes this MiniMaxUsageDTO to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -773,6 +775,7 @@ abstract class $MiniMaxUsageDTOCopyWith<$Res> {
     @JsonKey(name: 'prompt_tokens') int? promptTokens,
     @JsonKey(name: 'completion_tokens') int? completionTokens,
     @JsonKey(name: 'total_tokens') int? totalTokens,
+    @JsonKey(name: 'reasoning_tokens') int? reasoningTokens,
   });
 }
 
@@ -794,6 +797,7 @@ class _$MiniMaxUsageDTOCopyWithImpl<$Res, $Val extends MiniMaxUsageDTO>
     Object? promptTokens = freezed,
     Object? completionTokens = freezed,
     Object? totalTokens = freezed,
+    Object? reasoningTokens = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -808,6 +812,10 @@ class _$MiniMaxUsageDTOCopyWithImpl<$Res, $Val extends MiniMaxUsageDTO>
             totalTokens: freezed == totalTokens
                 ? _value.totalTokens
                 : totalTokens // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            reasoningTokens: freezed == reasoningTokens
+                ? _value.reasoningTokens
+                : reasoningTokens // ignore: cast_nullable_to_non_nullable
                       as int?,
           )
           as $Val,
@@ -828,6 +836,7 @@ abstract class _$$MiniMaxUsageDTOImplCopyWith<$Res>
     @JsonKey(name: 'prompt_tokens') int? promptTokens,
     @JsonKey(name: 'completion_tokens') int? completionTokens,
     @JsonKey(name: 'total_tokens') int? totalTokens,
+    @JsonKey(name: 'reasoning_tokens') int? reasoningTokens,
   });
 }
 
@@ -848,6 +857,7 @@ class __$$MiniMaxUsageDTOImplCopyWithImpl<$Res>
     Object? promptTokens = freezed,
     Object? completionTokens = freezed,
     Object? totalTokens = freezed,
+    Object? reasoningTokens = freezed,
   }) {
     return _then(
       _$MiniMaxUsageDTOImpl(
@@ -863,6 +873,10 @@ class __$$MiniMaxUsageDTOImplCopyWithImpl<$Res>
             ? _value.totalTokens
             : totalTokens // ignore: cast_nullable_to_non_nullable
                   as int?,
+        reasoningTokens: freezed == reasoningTokens
+            ? _value.reasoningTokens
+            : reasoningTokens // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -875,6 +889,7 @@ class _$MiniMaxUsageDTOImpl implements _MiniMaxUsageDTO {
     @JsonKey(name: 'prompt_tokens') this.promptTokens,
     @JsonKey(name: 'completion_tokens') this.completionTokens,
     @JsonKey(name: 'total_tokens') this.totalTokens,
+    @JsonKey(name: 'reasoning_tokens') this.reasoningTokens,
   });
 
   factory _$MiniMaxUsageDTOImpl.fromJson(Map<String, dynamic> json) =>
@@ -889,10 +904,13 @@ class _$MiniMaxUsageDTOImpl implements _MiniMaxUsageDTO {
   @override
   @JsonKey(name: 'total_tokens')
   final int? totalTokens;
+  @override
+  @JsonKey(name: 'reasoning_tokens')
+  final int? reasoningTokens;
 
   @override
   String toString() {
-    return 'MiniMaxUsageDTO(promptTokens: $promptTokens, completionTokens: $completionTokens, totalTokens: $totalTokens)';
+    return 'MiniMaxUsageDTO(promptTokens: $promptTokens, completionTokens: $completionTokens, totalTokens: $totalTokens, reasoningTokens: $reasoningTokens)';
   }
 
   @override
@@ -905,13 +923,20 @@ class _$MiniMaxUsageDTOImpl implements _MiniMaxUsageDTO {
             (identical(other.completionTokens, completionTokens) ||
                 other.completionTokens == completionTokens) &&
             (identical(other.totalTokens, totalTokens) ||
-                other.totalTokens == totalTokens));
+                other.totalTokens == totalTokens) &&
+            (identical(other.reasoningTokens, reasoningTokens) ||
+                other.reasoningTokens == reasoningTokens));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, promptTokens, completionTokens, totalTokens);
+  int get hashCode => Object.hash(
+    runtimeType,
+    promptTokens,
+    completionTokens,
+    totalTokens,
+    reasoningTokens,
+  );
 
   /// Create a copy of MiniMaxUsageDTO
   /// with the given fields replaced by the non-null parameter values.
@@ -935,6 +960,7 @@ abstract class _MiniMaxUsageDTO implements MiniMaxUsageDTO {
     @JsonKey(name: 'prompt_tokens') final int? promptTokens,
     @JsonKey(name: 'completion_tokens') final int? completionTokens,
     @JsonKey(name: 'total_tokens') final int? totalTokens,
+    @JsonKey(name: 'reasoning_tokens') final int? reasoningTokens,
   }) = _$MiniMaxUsageDTOImpl;
 
   factory _MiniMaxUsageDTO.fromJson(Map<String, dynamic> json) =
@@ -949,6 +975,9 @@ abstract class _MiniMaxUsageDTO implements MiniMaxUsageDTO {
   @override
   @JsonKey(name: 'total_tokens')
   int? get totalTokens;
+  @override
+  @JsonKey(name: 'reasoning_tokens')
+  int? get reasoningTokens;
 
   /// Create a copy of MiniMaxUsageDTO
   /// with the given fields replaced by the non-null parameter values.

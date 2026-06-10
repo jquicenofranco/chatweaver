@@ -9,6 +9,7 @@ import 'package:chatweaver/llm/llm_exception.dart';
 import 'package:chatweaver/message/domain/entities/message.dart';
 import 'package:chatweaver/message/domain/repositories/messages_repository.dart';
 import 'package:chatweaver/session/domain/exceptions/session_not_found_exception.dart';
+import 'package:chatweaver/session/domain/repositories/model_catalog_repository.dart';
 import 'package:chatweaver/session/domain/repositories/sessions_repository.dart';
 
 /// Caso de uso principal: enviar un mensaje del usuario y streamear
@@ -16,22 +17,35 @@ import 'package:chatweaver/session/domain/repositories/sessions_repository.dart'
 ///
 /// Implementa el Strategy Pattern: el provider concreto
 /// ([MiniMaxProvider], etc.) se inyecta via [ILLMProvider].
+///
+/// **Spec 05 (T-14, T-15, T-16)**: cuando el modelo activo tiene
+/// `supportsReasoning = true`, el caso de uso:
+/// 1. Envia `enableReasoning: true` al [GenerateRequest].
+/// 2. Mantiene un `reasoningBuffer` paralelo al `contentBuffer`.
+/// 3. Persiste el reasoning incrementalmente (un write por chunk
+///    de `reasoningDelta`) en `Message.reasoning`.
+/// 4. Persiste los `thinkingTokens` en `Message.thinkingTokens`.
+/// 5. Si el provider no devuelve `thinkingTokens` (OQ-02 fallback),
+///    estima como `length(reasoningBuffer) / 4`.
 class SendMessage {
   const SendMessage({
     required ILLMProvider provider,
     required SessionsRepository sessions,
     required MessagesRepository messages,
+    required ModelCatalogRepository models,
     required ContextWindowManager context,
     required Uuid uuid,
-  })  : _provider = provider,
-        _sessions = sessions,
-        _messages = messages,
-        _context = context,
-        _uuid = uuid;
+  }) : _provider = provider,
+       _sessions = sessions,
+       _messages = messages,
+       _models = models,
+       _context = context,
+       _uuid = uuid;
 
   final ILLMProvider _provider;
   final SessionsRepository _sessions;
   final MessagesRepository _messages;
+  final ModelCatalogRepository _models;
   final ContextWindowManager _context;
   final Uuid _uuid;
 
@@ -42,6 +56,13 @@ class SendMessage {
   }) async {
     final session = await _sessions.getById(sessionId);
     if (session == null) throw SessionNotFoundException(sessionId);
+
+    // **Spec 05 (T-16)**: resolver `supportsReasoning` desde el
+    // catalogo. Si el modelo no existe o no soporta reasoning,
+    // `enableReasoning` queda en false y la feature se desactiva
+    // silenciosamente (C-BIZ-02).
+    final modelDef = await _models.getById(session.modelId);
+    final enableReasoning = modelDef?.supportsReasoning ?? false;
 
     final history = await _messages.listBySession(sessionId);
     final historyAsChat = history
@@ -85,6 +106,7 @@ class SendMessage {
         ),
       ],
       systemPrompt: session.systemPrompt,
+      enableReasoning: enableReasoning,
     );
 
     final assistantMsgId = _uuid.v4();
@@ -99,13 +121,30 @@ class SendMessage {
       ),
     );
 
-    final buffer = StringBuffer();
+    // **Spec 05 (T-14)**: dos buffers paralelos para que la UI vea
+    // el reasoning aparecer progresivamente (no solo al final).
+    final contentBuffer = StringBuffer();
+    final reasoningBuffer = StringBuffer();
+    // Flag para evitar doble `updateStatus(complete)`: si el
+    // stream cerro con `finishReason`, ya se actualizo; si
+    // cerro sin finishReason (stream truncado, cancel del
+    // usuario via `on CancelToken`, etc.), el bloque
+    // post-loop lo hace.
+    var markedComplete = false;
     try {
       await for (final chunk in _provider.generateStream(
         request: request,
         cancelToken: cancelToken,
       )) {
         if (chunk.errorMessage != null) {
+          // Persistir el reasoning parcial ANTES de marcar failed,
+          // para que no se pierda lo que el modelo ya razono.
+          if (reasoningBuffer.isNotEmpty) {
+            await _messages.updateReasoning(
+              assistantMsgId,
+              reasoningBuffer.toString(),
+            );
+          }
           await _messages.updateStatus(
             assistantMsgId,
             MessageStatus.failed,
@@ -114,28 +153,69 @@ class SendMessage {
           throw ProviderException(chunk.errorMessage!);
         }
         if (chunk.textDelta != null) {
-          buffer.write(chunk.textDelta);
-          await _messages.updateContent(assistantMsgId, buffer.toString());
+          contentBuffer.write(chunk.textDelta);
+          await _messages.updateContent(
+            assistantMsgId,
+            contentBuffer.toString(),
+          );
+        }
+        // **Spec 05 (T-15)**: persistir el reasoning incremental.
+        if (chunk.reasoningDelta != null) {
+          reasoningBuffer.write(chunk.reasoningDelta);
+          await _messages.updateReasoning(
+            assistantMsgId,
+            reasoningBuffer.toString(),
+          );
         }
         if (chunk.usage != null) {
+          // **Spec 05 (OQ-02)**: si el provider no devuelve
+          // thinking tokens, estimamos por longitud del buffer.
+          // Es un fallback; la precisión es suficiente para el
+          // `TokenMeter` (feedback, no facturación).
+          final reported = chunk.usage!.thinkingTokens;
+          final estimated = reasoningBuffer.isEmpty
+              ? 0
+              : (reasoningBuffer.length / 4).ceil();
+          final thinkingTokens = reported > 0 ? reported : estimated;
           await _messages.updateTokenUsage(
             assistantMsgId,
             inputTokens: chunk.usage!.inputTokens,
             outputTokens: chunk.usage!.outputTokens,
+            thinkingTokens: thinkingTokens,
           );
           await _sessions.accumulateTokens(
             sessionId,
             input: chunk.usage!.inputTokens,
             output: chunk.usage!.outputTokens,
+            // thinking NO se acumula en la sesion (MVP): el
+            // TokenMeter lo consume desde la lista de mensajes.
           );
         }
         if (chunk.finishReason != null) {
           await _messages.updateStatus(assistantMsgId, MessageStatus.complete);
           await _messages.patch(assistantMsgId, completedAt: DateTime.now());
+          markedComplete = true;
         }
       }
+      // **Stream cerro normalmente (sin error, sin cancel, sin
+      // finishReason explicito)**: el provider aborto el stream
+      // o no envio el chunk final. Marcamos el mensaje como
+      // complete para que la UI no quede en "streaming" forever.
+      // El texto + reasoning parciales ya estan persistidos
+      // incrementalmente durante el loop.
+      if (!markedComplete) {
+        await _messages.updateStatus(assistantMsgId, MessageStatus.complete);
+        await _messages.patch(assistantMsgId, completedAt: DateTime.now());
+      }
     } on CancelToken {
-      // Usuario aborto. Texto parcial queda persistido.
+      // Usuario aborto. Texto + reasoning parciales quedan persistidos.
+      // El reasoning es valioso: el usuario queria verlo.
+      if (reasoningBuffer.isNotEmpty) {
+        await _messages.updateReasoning(
+          assistantMsgId,
+          reasoningBuffer.toString(),
+        );
+      }
       await _messages.updateStatus(assistantMsgId, MessageStatus.complete);
       await _messages.patch(assistantMsgId, completedAt: DateTime.now());
       rethrow;
@@ -143,8 +223,8 @@ class SendMessage {
   }
 
   ChatRole _toChatRole(MessageRole r) => switch (r) {
-        MessageRole.system => ChatRole.system,
-        MessageRole.user => ChatRole.user,
-        MessageRole.assistant => ChatRole.assistant,
-      };
+    MessageRole.system => ChatRole.system,
+    MessageRole.user => ChatRole.user,
+    MessageRole.assistant => ChatRole.assistant,
+  };
 }

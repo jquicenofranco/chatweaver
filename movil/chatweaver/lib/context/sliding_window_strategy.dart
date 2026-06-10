@@ -31,7 +31,8 @@ class SlidingWindowStrategy implements ContextStrategy {
     var usedTokens = 0;
 
     for (final message in messages.reversed) {
-      final messageTokens = calculateTokens(message.content) + _perMessageOverhead;
+      final messageTokens =
+          calculateTokens(message.content) + _perMessageOverhead;
 
       if (usedTokens + messageTokens > effectiveBudget) break;
 

@@ -38,9 +38,22 @@ class SettingsScreen extends ConsumerWidget {
             title: Text(l10n.settingsModels),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const _ModelsScreen(),
-              ),
+              MaterialPageRoute<void>(builder: (_) => const _ModelsScreen()),
+            ),
+          ),
+          // **Spec 05 (T-28)**: toggle global para mostrar u
+          // ocultar el panel de reasoning. Persistido en
+          // `shared_preferences` (no en DB). El subtitulo aclara
+          // que esto es solo la visualizacion: no apaga el
+          // modelo thinking, solo oculta el trace.
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.psychology),
+            title: Text(l10n.settingsShowReasoningTitle),
+            subtitle: Text(l10n.settingsShowReasoningSubtitle),
+            trailing: Switch(
+              value: ref.watch(showReasoningProvider),
+              onChanged: (v) => ref.read(showReasoningProvider.notifier).set(v),
             ),
           ),
         ],
@@ -112,8 +125,7 @@ class _AddCredentialScreen extends ConsumerStatefulWidget {
       _AddCredentialScreenState();
 }
 
-class _AddCredentialScreenState
-    extends ConsumerState<_AddCredentialScreen> {
+class _AddCredentialScreenState extends ConsumerState<_AddCredentialScreen> {
   final _labelController = TextEditingController();
   final _tokenController = TextEditingController();
 
@@ -127,6 +139,11 @@ class _AddCredentialScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    // **Spec 04 v2.0.0**: el providerId ya no es hardcoded a
+    // 'MiniMax'. Se resuelve desde el primer provider disponible
+    // en el factory (en MVP siempre sera MiniMax, pero el codigo
+    // no acopla a un nombre especifico).
+    final providers = ref.watch(availableProvidersProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAddCredential)),
       body: Padding(
@@ -135,7 +152,9 @@ class _AddCredentialScreenState
           children: [
             TextField(
               controller: _labelController,
-              decoration: const InputDecoration(labelText: 'Label'),
+              decoration: InputDecoration(
+                labelText: l10n.settingsAddCredentialLabel,
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
@@ -145,23 +164,28 @@ class _AddCredentialScreenState
             ),
             const SizedBox(height: 24),
             FilledButton(
-              onPressed: () async {
-                final id = DateTime.now().millisecondsSinceEpoch.toString();
-                await ref.read(credentialRepositoryProvider).save(
-                      CredentialHandle(
-                        id: id,
-                        providerId: 'MiniMax',
-                        label: _labelController.text.isEmpty
-                            ? 'Default'
-                            : _labelController.text,
-                        secureKey: 'chatweaver_$id',
-                        createdAt: DateTime.now(),
-                      ),
-                      _tokenController.text,
-                    );
-                ref.invalidate(credentialsListProvider);
-                if (context.mounted) Navigator.of(context).pop();
-              },
+              onPressed: providers.isEmpty
+                  ? null
+                  : () async {
+                      final providerId = providers.first.id;
+                      final id = '$providerId-default';
+                      await ref
+                          .read(credentialRepositoryProvider)
+                          .save(
+                            CredentialHandle(
+                              id: id,
+                              providerId: providerId,
+                              label: _labelController.text.isEmpty
+                                  ? l10n.commonDefault
+                                  : _labelController.text,
+                              secureKey: 'chatweaver_$id',
+                              createdAt: DateTime.now(),
+                            ),
+                            _tokenController.text,
+                          );
+                      ref.invalidate(credentialsListProvider);
+                      if (context.mounted) Navigator.of(context).pop();
+                    },
               child: Text(l10n.commonSave),
             ),
           ],

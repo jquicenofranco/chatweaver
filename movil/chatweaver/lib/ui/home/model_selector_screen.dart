@@ -8,17 +8,30 @@ import 'package:chatweaver/session/domain/entities/model_definition.dart';
 import 'package:chatweaver/ui/shared/empty_state_view.dart';
 import 'package:chatweaver/ui/shared/error_view.dart';
 
+/// Pantalla de seleccion de modelo.
+///
+/// **Spec 04 v2.0.0**: se llega desde ProviderSelector (no es
+/// el entry point del flujo). Filtra por `providerId` cuando
+/// viene como query param; si no viene, muestra todos los
+/// modelos habilitados (modo legacy / fallback).
 class ModelSelectorScreen extends ConsumerWidget {
-  const ModelSelectorScreen({super.key});
+  const ModelSelectorScreen({super.key, this.initialProviderId});
+
+  final String? initialProviderId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final modelsAsync = ref.watch(availableModelsProvider);
+    final modelsAsync = ref.watch(_modelsProvider(initialProviderId));
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.modelSelectorTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: l10n.commonBack,
+          onPressed: () => context.go('/providers'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -47,12 +60,25 @@ class ModelSelectorScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => ErrorView(
           message: e.toString(),
-          onRetry: () => ref.invalidate(availableModelsProvider),
+          onRetry: () => ref.invalidate(_modelsProvider(initialProviderId)),
         ),
       ),
     );
   }
 }
+
+/// Provider local: filtra por providerId si viene, sino lista
+/// todos los habilitados (modo fallback / deep link directo).
+final _modelsProvider = FutureProvider.family<List<ModelDefinition>, String?>((
+  ref,
+  providerId,
+) {
+  final repo = ref.read(modelCatalogRepositoryProvider);
+  if (providerId == null || providerId.isEmpty) {
+    return repo.listEnabled();
+  }
+  return repo.listEnabledByProvider(providerId);
+});
 
 class _ModelCard extends ConsumerWidget {
   const _ModelCard({required this.model});
@@ -92,12 +118,12 @@ class _ModelCard extends ConsumerWidget {
           style: const TextStyle(color: Colors.green, fontSize: 12),
         ),
       ),
-      onTap: () => context.push('/token?modelId=${model.id}'),
+      onTap: () => context.push('/sessions?modelId=${model.id}'),
       onLongPress: () async {
         await ref
             .read(modelCatalogRepositoryProvider)
             .setEnabled(model.id, !model.enabled);
-        ref.invalidate(availableModelsProvider);
+        ref.invalidate(_modelsProvider(model.providerId));
       },
     );
   }

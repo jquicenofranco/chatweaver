@@ -20,6 +20,8 @@ mixin _$ChatState {
   List<Message> get messages => throw _privateConstructorUsedError;
   bool get isStreaming => throw _privateConstructorUsedError;
   TokenUsage get sessionUsage => throw _privateConstructorUsedError;
+  Map<String, String> get reasoningByMessageId =>
+      throw _privateConstructorUsedError;
   String get draft => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError;
 
@@ -39,6 +41,7 @@ abstract class $ChatStateCopyWith<$Res> {
     List<Message> messages,
     bool isStreaming,
     TokenUsage sessionUsage,
+    Map<String, String> reasoningByMessageId,
     String draft,
     String? error,
   });
@@ -64,6 +67,7 @@ class _$ChatStateCopyWithImpl<$Res, $Val extends ChatState>
     Object? messages = null,
     Object? isStreaming = null,
     Object? sessionUsage = null,
+    Object? reasoningByMessageId = null,
     Object? draft = null,
     Object? error = freezed,
   }) {
@@ -81,6 +85,10 @@ class _$ChatStateCopyWithImpl<$Res, $Val extends ChatState>
                 ? _value.sessionUsage
                 : sessionUsage // ignore: cast_nullable_to_non_nullable
                       as TokenUsage,
+            reasoningByMessageId: null == reasoningByMessageId
+                ? _value.reasoningByMessageId
+                : reasoningByMessageId // ignore: cast_nullable_to_non_nullable
+                      as Map<String, String>,
             draft: null == draft
                 ? _value.draft
                 : draft // ignore: cast_nullable_to_non_nullable
@@ -118,6 +126,7 @@ abstract class _$$ChatStateImplCopyWith<$Res>
     List<Message> messages,
     bool isStreaming,
     TokenUsage sessionUsage,
+    Map<String, String> reasoningByMessageId,
     String draft,
     String? error,
   });
@@ -143,6 +152,7 @@ class __$$ChatStateImplCopyWithImpl<$Res>
     Object? messages = null,
     Object? isStreaming = null,
     Object? sessionUsage = null,
+    Object? reasoningByMessageId = null,
     Object? draft = null,
     Object? error = freezed,
   }) {
@@ -160,6 +170,10 @@ class __$$ChatStateImplCopyWithImpl<$Res>
             ? _value.sessionUsage
             : sessionUsage // ignore: cast_nullable_to_non_nullable
                   as TokenUsage,
+        reasoningByMessageId: null == reasoningByMessageId
+            ? _value._reasoningByMessageId
+            : reasoningByMessageId // ignore: cast_nullable_to_non_nullable
+                  as Map<String, String>,
         draft: null == draft
             ? _value.draft
             : draft // ignore: cast_nullable_to_non_nullable
@@ -175,14 +189,16 @@ class __$$ChatStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$ChatStateImpl implements _ChatState {
+class _$ChatStateImpl with DiagnosticableTreeMixin implements _ChatState {
   const _$ChatStateImpl({
     final List<Message> messages = const <Message>[],
     this.isStreaming = false,
     this.sessionUsage = const TokenUsage(),
+    final Map<String, String> reasoningByMessageId = const <String, String>{},
     this.draft = '',
     this.error,
-  }) : _messages = messages;
+  }) : _messages = messages,
+       _reasoningByMessageId = reasoningByMessageId;
 
   final List<Message> _messages;
   @override
@@ -199,6 +215,16 @@ class _$ChatStateImpl implements _ChatState {
   @override
   @JsonKey()
   final TokenUsage sessionUsage;
+  final Map<String, String> _reasoningByMessageId;
+  @override
+  @JsonKey()
+  Map<String, String> get reasoningByMessageId {
+    if (_reasoningByMessageId is EqualUnmodifiableMapView)
+      return _reasoningByMessageId;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_reasoningByMessageId);
+  }
+
   @override
   @JsonKey()
   final String draft;
@@ -206,8 +232,21 @@ class _$ChatStateImpl implements _ChatState {
   final String? error;
 
   @override
-  String toString() {
-    return 'ChatState(messages: $messages, isStreaming: $isStreaming, sessionUsage: $sessionUsage, draft: $draft, error: $error)';
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'ChatState(messages: $messages, isStreaming: $isStreaming, sessionUsage: $sessionUsage, reasoningByMessageId: $reasoningByMessageId, draft: $draft, error: $error)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'ChatState'))
+      ..add(DiagnosticsProperty('messages', messages))
+      ..add(DiagnosticsProperty('isStreaming', isStreaming))
+      ..add(DiagnosticsProperty('sessionUsage', sessionUsage))
+      ..add(DiagnosticsProperty('reasoningByMessageId', reasoningByMessageId))
+      ..add(DiagnosticsProperty('draft', draft))
+      ..add(DiagnosticsProperty('error', error));
   }
 
   @override
@@ -220,6 +259,10 @@ class _$ChatStateImpl implements _ChatState {
                 other.isStreaming == isStreaming) &&
             (identical(other.sessionUsage, sessionUsage) ||
                 other.sessionUsage == sessionUsage) &&
+            const DeepCollectionEquality().equals(
+              other._reasoningByMessageId,
+              _reasoningByMessageId,
+            ) &&
             (identical(other.draft, draft) || other.draft == draft) &&
             (identical(other.error, error) || other.error == error));
   }
@@ -230,6 +273,7 @@ class _$ChatStateImpl implements _ChatState {
     const DeepCollectionEquality().hash(_messages),
     isStreaming,
     sessionUsage,
+    const DeepCollectionEquality().hash(_reasoningByMessageId),
     draft,
     error,
   );
@@ -248,6 +292,7 @@ abstract class _ChatState implements ChatState {
     final List<Message> messages,
     final bool isStreaming,
     final TokenUsage sessionUsage,
+    final Map<String, String> reasoningByMessageId,
     final String draft,
     final String? error,
   }) = _$ChatStateImpl;
@@ -258,6 +303,8 @@ abstract class _ChatState implements ChatState {
   bool get isStreaming;
   @override
   TokenUsage get sessionUsage;
+  @override
+  Map<String, String> get reasoningByMessageId;
   @override
   String get draft;
   @override

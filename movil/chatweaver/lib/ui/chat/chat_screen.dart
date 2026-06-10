@@ -41,6 +41,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToEnd());
     });
 
+    // **Spec 05 (T-22)**: sincronizar el map de reasoning
+    // incremental del controller. Solo si la lista esta disponible
+    // (no en loading). El controller hace el diff con
+    // `mapEquals` y evita rebuilds innecesarios.
+    messagesAsync.whenData((msgs) {
+      ref
+          .read(chatControllerProvider(widget.sessionId).notifier)
+          .syncFromMessages(msgs);
+    });
+
     return sessionAsync.when(
       data: (session) {
         if (session == null) {
@@ -57,9 +67,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 IconButton(
                   icon: const Icon(Icons.stop),
                   tooltip: l10n.chatStop,
-                  onPressed: () =>
-                      ref.read(chatControllerProvider(widget.sessionId).notifier)
-                          .abort(),
+                  onPressed: () => ref
+                      .read(chatControllerProvider(widget.sessionId).notifier)
+                      .abort(),
                 ),
               PopupMenuButton<String>(
                 onSelected: (v) => _onMenu(context, v, session.title),
@@ -105,11 +115,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           message: messages[i],
                           onRetry: messages[i].status == MessageStatus.failed
                               ? () => ref
-                                  .read(
-                                    chatControllerProvider(widget.sessionId)
-                                        .notifier,
-                                  )
-                                  .send(messages[i].content)
+                                    .read(
+                                      chatControllerProvider(
+                                        widget.sessionId,
+                                      ).notifier,
+                                    )
+                                    .send(messages[i].content)
                               : null,
                         );
                       },
@@ -137,9 +148,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         );
       },
-      loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      ),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text(e.toString()))),
     );
   }
@@ -190,9 +200,22 @@ class _TokenMeterHeader extends ConsumerWidget {
     final session = sessionAsync.valueOrNull;
     final modelAsync = ref.watch(_modelByIdProvider(contextWindowModelId));
     final contextWindow = modelAsync.valueOrNull?.contextWindow ?? 0;
+
+    // **Spec 05 (decision MVP)**: thinking tokens NO se acumulan
+    // a nivel `Session` (no tocamos el schema de sessions). El
+    // `TokenMeter` los consume desde la lista de mensajes, sumando
+    // `thinkingTokens` de los assistant messages. Para listas
+    // pequeñas (<1000) el fold es O(n) y barato; si crece, pasar
+    // a query agregada en el DAO.
+    final thinkingTokens = messages.fold<int>(
+      0,
+      (sum, m) => sum + (m.thinkingTokens ?? 0),
+    );
+
     final usage = TokenUsage(
       inputTokens: session?.totalInputTokens ?? 0,
       outputTokens: session?.totalOutputTokens ?? 0,
+      thinkingTokens: thinkingTokens,
     );
     final projected = _projectedRatio(contextWindow);
 

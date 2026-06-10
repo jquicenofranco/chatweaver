@@ -19,6 +19,7 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$TokenUsage {
   int get inputTokens => throw _privateConstructorUsedError;
   int get outputTokens => throw _privateConstructorUsedError;
+  int get thinkingTokens => throw _privateConstructorUsedError;
 
   /// Create a copy of TokenUsage
   /// with the given fields replaced by the non-null parameter values.
@@ -34,7 +35,7 @@ abstract class $TokenUsageCopyWith<$Res> {
     $Res Function(TokenUsage) then,
   ) = _$TokenUsageCopyWithImpl<$Res, TokenUsage>;
   @useResult
-  $Res call({int inputTokens, int outputTokens});
+  $Res call({int inputTokens, int outputTokens, int thinkingTokens});
 }
 
 /// @nodoc
@@ -51,7 +52,11 @@ class _$TokenUsageCopyWithImpl<$Res, $Val extends TokenUsage>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? inputTokens = null, Object? outputTokens = null}) {
+  $Res call({
+    Object? inputTokens = null,
+    Object? outputTokens = null,
+    Object? thinkingTokens = null,
+  }) {
     return _then(
       _value.copyWith(
             inputTokens: null == inputTokens
@@ -61,6 +66,10 @@ class _$TokenUsageCopyWithImpl<$Res, $Val extends TokenUsage>
             outputTokens: null == outputTokens
                 ? _value.outputTokens
                 : outputTokens // ignore: cast_nullable_to_non_nullable
+                      as int,
+            thinkingTokens: null == thinkingTokens
+                ? _value.thinkingTokens
+                : thinkingTokens // ignore: cast_nullable_to_non_nullable
                       as int,
           )
           as $Val,
@@ -77,7 +86,7 @@ abstract class _$$TokenUsageImplCopyWith<$Res>
   ) = __$$TokenUsageImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int inputTokens, int outputTokens});
+  $Res call({int inputTokens, int outputTokens, int thinkingTokens});
 }
 
 /// @nodoc
@@ -93,7 +102,11 @@ class __$$TokenUsageImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? inputTokens = null, Object? outputTokens = null}) {
+  $Res call({
+    Object? inputTokens = null,
+    Object? outputTokens = null,
+    Object? thinkingTokens = null,
+  }) {
     return _then(
       _$TokenUsageImpl(
         inputTokens: null == inputTokens
@@ -104,6 +117,10 @@ class __$$TokenUsageImplCopyWithImpl<$Res>
             ? _value.outputTokens
             : outputTokens // ignore: cast_nullable_to_non_nullable
                   as int,
+        thinkingTokens: null == thinkingTokens
+            ? _value.thinkingTokens
+            : thinkingTokens // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -112,8 +129,11 @@ class __$$TokenUsageImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$TokenUsageImpl extends _TokenUsage {
-  const _$TokenUsageImpl({this.inputTokens = 0, this.outputTokens = 0})
-    : super._();
+  const _$TokenUsageImpl({
+    this.inputTokens = 0,
+    this.outputTokens = 0,
+    this.thinkingTokens = 0,
+  }) : super._();
 
   @override
   @JsonKey()
@@ -121,10 +141,13 @@ class _$TokenUsageImpl extends _TokenUsage {
   @override
   @JsonKey()
   final int outputTokens;
+  @override
+  @JsonKey()
+  final int thinkingTokens;
 
   @override
   String toString() {
-    return 'TokenUsage(inputTokens: $inputTokens, outputTokens: $outputTokens)';
+    return 'TokenUsage(inputTokens: $inputTokens, outputTokens: $outputTokens, thinkingTokens: $thinkingTokens)';
   }
 
   @override
@@ -135,11 +158,14 @@ class _$TokenUsageImpl extends _TokenUsage {
             (identical(other.inputTokens, inputTokens) ||
                 other.inputTokens == inputTokens) &&
             (identical(other.outputTokens, outputTokens) ||
-                other.outputTokens == outputTokens));
+                other.outputTokens == outputTokens) &&
+            (identical(other.thinkingTokens, thinkingTokens) ||
+                other.thinkingTokens == thinkingTokens));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, inputTokens, outputTokens);
+  int get hashCode =>
+      Object.hash(runtimeType, inputTokens, outputTokens, thinkingTokens);
 
   /// Create a copy of TokenUsage
   /// with the given fields replaced by the non-null parameter values.
@@ -151,14 +177,19 @@ class _$TokenUsageImpl extends _TokenUsage {
 }
 
 abstract class _TokenUsage extends TokenUsage {
-  const factory _TokenUsage({final int inputTokens, final int outputTokens}) =
-      _$TokenUsageImpl;
+  const factory _TokenUsage({
+    final int inputTokens,
+    final int outputTokens,
+    final int thinkingTokens,
+  }) = _$TokenUsageImpl;
   const _TokenUsage._() : super._();
 
   @override
   int get inputTokens;
   @override
   int get outputTokens;
+  @override
+  int get thinkingTokens;
 
   /// Create a copy of TokenUsage
   /// with the given fields replaced by the non-null parameter values.

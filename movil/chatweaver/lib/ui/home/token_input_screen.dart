@@ -2,18 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:uuid/uuid.dart';
 
 import 'package:chatweaver/db/credential_handle.dart';
 import 'package:chatweaver/di/global_providers.dart';
 import 'package:chatweaver/l10n/generated/app_localizations.dart';
+import 'package:chatweaver/session/domain/entities/model_definition.dart';
 import 'package:chatweaver/ui/home/connection_test_controller.dart';
 import 'package:chatweaver/ui/shared/primary_button.dart';
 
+/// Pantalla de captura y validacion del API key (spec 04 v2.0.0).
+///
+/// **Cambio v2.0.0**: recibe `providerId` (no `modelId`). El
+/// catalogo de modelos se filtra por provider para resolver el
+/// primer modelo habilitado, que se usa para el ping barato de
+/// `testConnection`. La credencial se guarda a nivel de provider.
 class TokenInputScreen extends ConsumerStatefulWidget {
-  const TokenInputScreen({super.key, required this.modelId});
+  const TokenInputScreen({super.key, required this.providerId});
 
-  final String modelId;
+  final String providerId;
 
   @override
   ConsumerState<TokenInputScreen> createState() => _TokenInputScreenState();
@@ -34,34 +40,43 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(connectionTestProvider);
-    final model = ref.watch(
-      _modelDefinitionProvider(widget.modelId),
+    // Header: nombre del provider + lista de modelos disponibles.
+    final modelsAsync = ref.watch(
+      _modelsForProviderProvider(widget.providerId),
     );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tokenInputTitle)),
+      appBar: AppBar(
+        title: Text(l10n.tokenInputTitle),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          tooltip: l10n.commonBack,
+          onPressed: () => context.go('/providers'),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              model.when(
-                data: (def) => def == null
-                    ? const SizedBox.shrink()
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.tokenInputProvider(def.providerId),
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          Text(
-                            l10n.tokenInputModel(def.displayName),
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                        ],
+              modelsAsync.when(
+                data: (models) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.tokenInputProvider(widget.providerId),
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (models.isNotEmpty)
+                      Text(
+                        l10n.tokenInputModel(
+                          models.map((m) => m.displayName).join(', '),
+                        ),
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
+                  ],
+                ),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Text(e.toString()),
               ),
@@ -79,7 +94,9 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
                 decoration: InputDecoration(
                   labelText: l10n.tokenInputLabel,
                   suffixIcon: IconButton(
-                    icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(
+                      _obscure ? Icons.visibility : Icons.visibility_off,
+                    ),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
                 ),
@@ -113,40 +130,41 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
     final l10n = AppLocalizations.of(context);
     final apiKey = _tokenController.text.trim();
     if (apiKey.isEmpty) return;
-    final err = await ref.read(connectionTestProvider.notifier).test(
-          apiKey: apiKey,
-          modelId: widget.modelId,
-        );
+    final err = await ref
+        .read(connectionTestProvider.notifier)
+        .test(apiKey: apiKey, providerId: widget.providerId);
     if (!context.mounted) return;
     if (err != null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
       return;
     }
     if (_remember) {
-      final def = await ref
-          .read(modelCatalogRepositoryProvider)
-          .getById(widget.modelId);
-      if (def != null) {
-        const uuid = Uuid();
-        final id = '${def.providerId}-${uuid.v4().substring(0, 8)}';
-        await ref.read(credentialRepositoryProvider).save(
-              CredentialHandle(
-                id: id,
-                providerId: def.providerId,
-                label: 'Default',
-                secureKey: 'chatweaver_$id',
-                createdAt: DateTime.now(),
-              ),
-              apiKey,
-            );
-        await ref.read(credentialRepositoryProvider).setActive(id);
-      }
+      // spec 04 v2.0.0: la credencial es por provider. La `id`
+      // de la credencial usa el providerId para que sea estable
+      // (si el usuario re-entra, sobreescribimos en vez de
+      // duplicar).
+      final id = '${widget.providerId}-default';
+      await ref
+          .read(credentialRepositoryProvider)
+          .save(
+            CredentialHandle(
+              id: id,
+              providerId: widget.providerId,
+              label: l10n.commonDefault,
+              secureKey: 'chatweaver_$id',
+              createdAt: DateTime.now(),
+            ),
+            apiKey,
+          );
+      await ref.read(credentialRepositoryProvider).setActive(id);
     }
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.tokenInputConnected)),
-    );
-    context.pushReplacement('/sessions?modelId=${widget.modelId}');
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.tokenInputConnected)));
+    // Despues de validar, ir al selector de modelos del provider
+    // (spec 04 v2.0.0). El usuario elige cual modelo usar.
+    context.go('/models?providerId=${widget.providerId}');
   }
 
   Future<void> _openDocs(BuildContext context) async {
@@ -157,6 +175,11 @@ class _TokenInputScreenState extends ConsumerState<TokenInputScreen> {
   }
 }
 
-final _modelDefinitionProvider = FutureProvider.family((ref, String id) async {
-  return ref.read(modelCatalogRepositoryProvider).getById(id);
-});
+/// Provider local: modelos habilitados del provider (usado para
+/// mostrar el header "Modelo: M3, M2.7, ..." en TokenInput).
+final _modelsForProviderProvider =
+    FutureProvider.family<List<ModelDefinition>, String>((ref, providerId) {
+      return ref
+          .read(modelCatalogRepositoryProvider)
+          .listEnabledByProvider(providerId);
+    });

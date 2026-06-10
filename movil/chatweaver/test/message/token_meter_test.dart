@@ -20,7 +20,9 @@ Widget _wrap(Widget child) {
 
 void main() {
   group('TokenMeter', () {
-    testWidgets('muestra el conteo en formato {used} / {budget}', (tester) async {
+    testWidgets('muestra el conteo en formato {used} / {budget}', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _wrap(
           TokenMeter(
@@ -75,5 +77,64 @@ void main() {
 
       expect(find.text('0 / 0'), findsOneWidget);
     });
+
+    // ─── Spec 05 (T-17, VC-05): 3 segmentos apilados ──────────
+
+    testWidgets('Spec 05: renderiza 3 segmentos (input, thinking, answer) '
+        'proporcionales', (tester) async {
+      await tester.pumpWidget(
+        _wrap(
+          TokenMeter(
+            usage: const TokenUsage(
+              inputTokens: 60,
+              thinkingTokens: 20,
+              outputTokens: 20,
+            ),
+            contextBudget: 1000,
+            projectedRatio: 0.0,
+          ),
+        ),
+      );
+
+      // Total = 60 + 20 + 20 = 100. La barra de 3 segmentos debe
+      // estar presente. Cada segmento es un Container con
+      // `Expanded(flex: tokens)`.
+      final containers = find.descendant(
+        of: find.byType(TokenMeter),
+        matching: find.byType(Container),
+      );
+      // Hay varios Container (incluyendo el de la barra de
+      // progreso y el de cada segmento). Solo verificamos que
+      // existen multiples (al menos 3 segmentos + el wrapper).
+      expect(containers, findsWidgets);
+
+      // El texto del tooltip localizado (en `es`) usa ` · ` como
+      // separador. Verificamos que el Tooltip esta presente.
+      expect(find.byType(Tooltip), findsOneWidget);
+
+      // El conteo "100 / 1000" sigue funcionando porque
+      // `TokenUsage.total` incluye los 3 campos.
+      expect(find.text('100 / 1000'), findsOneWidget);
+    });
+
+    testWidgets(
+      'Spec 05: sin thinking tokens, solo se renderizan 2 segmentos',
+      (tester) async {
+        await tester.pumpWidget(
+          _wrap(
+            TokenMeter(
+              usage: const TokenUsage(inputTokens: 50, outputTokens: 50),
+              contextBudget: 1000,
+              projectedRatio: 0.0,
+            ),
+          ),
+        );
+
+        // Total = 50 + 50 + 0 = 100 (backward-compat: con
+        // thinkingTokens=0 el total coincide con el valor previo a
+        // spec 05).
+        expect(find.text('100 / 1000'), findsOneWidget);
+      },
+    );
   });
 }

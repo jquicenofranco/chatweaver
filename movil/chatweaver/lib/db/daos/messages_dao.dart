@@ -25,32 +25,44 @@ class MessagesDao extends DatabaseAccessor<AppDatabase>
   Future<void> insertRow(MessagesCompanion row) => into(messages).insert(row);
 
   Future<void> updateContent(String id, String content) =>
-      (update(messages)..where((t) => t.id.equals(id)))
-          .write(MessagesCompanion(content: Value(content)));
+      (update(messages)..where((t) => t.id.equals(id))).write(
+        MessagesCompanion(content: Value(content)),
+      );
+
+  /// **Spec 05 (T-12)**: persistir el reasoning incremental. Se
+  /// llama una vez por chunk de `reasoningDelta` durante el
+  /// streaming (envuelto en un `StringBuffer` en el caso de uso).
+  Future<void> updateReasoning(String id, String reasoning) =>
+      (update(messages)..where((t) => t.id.equals(id))).write(
+        MessagesCompanion(reasoning: Value(reasoning)),
+      );
 
   Future<void> updateStatus(String id, String status, {String? error}) =>
       (update(messages)..where((t) => t.id.equals(id))).write(
-        MessagesCompanion(
-          status: Value(status),
-          errorMessage: Value(error),
-        ),
+        MessagesCompanion(status: Value(status), errorMessage: Value(error)),
       );
 
+  /// Actualiza el uso de tokens. Los tres campos son **opcionales
+  /// nombrados** para que el caller solo mande lo que quiere
+  /// cambiar. `thinkingTokens` es la 3ra categoria (spec 05
+  /// C-TECH-06), independiente de `outputTokens`.
   Future<void> updateTokenUsage(
     String id, {
     int? inputTokens,
     int? outputTokens,
-  }) =>
-      (update(messages)..where((t) => t.id.equals(id))).write(
-        MessagesCompanion(
-          inputTokens: Value(inputTokens),
-          outputTokens: Value(outputTokens),
-        ),
-      );
+    int? thinkingTokens,
+  }) => (update(messages)..where((t) => t.id.equals(id))).write(
+    MessagesCompanion(
+      inputTokens: Value(inputTokens),
+      outputTokens: Value(outputTokens),
+      thinkingTokens: Value(thinkingTokens),
+    ),
+  );
 
   Future<void> patch(String id, {DateTime? completedAt}) =>
-      (update(messages)..where((t) => t.id.equals(id)))
-          .write(MessagesCompanion(completedAt: Value(completedAt)));
+      (update(messages)..where((t) => t.id.equals(id))).write(
+        MessagesCompanion(completedAt: Value(completedAt)),
+      );
 
   Future<void> deleteById(String id) =>
       (delete(messages)..where((t) => t.id.equals(id))).go();

@@ -5,6 +5,10 @@ import 'package:chatweaver/db/mappers/message_mapper.dart';
 import 'package:chatweaver/message/domain/entities/message.dart';
 import 'package:chatweaver/message/domain/repositories/messages_repository.dart';
 
+/// Implementacion de [MessagesRepository] sobre Drift.
+///
+/// **Spec 05**: cablea `reasoning` y `thinkingTokens` en `append`
+/// y `updateTokenUsage`, y propaga el `updateReasoning` del DAO.
 class MessagesRepositoryImpl implements MessagesRepository {
   MessagesRepositoryImpl(this._db);
 
@@ -29,8 +33,12 @@ class MessagesRepositoryImpl implements MessagesRepository {
         sessionId: message.sessionId,
         role: _roleToString(message.role),
         content: message.content,
+        // Spec 05: persistir reasoning nullable.
+        reasoning: Value(message.reasoning),
         inputTokens: Value(message.inputTokens),
         outputTokens: Value(message.outputTokens),
+        // Spec 05: 3ra categoria de tokens, nullable.
+        thinkingTokens: Value(message.thinkingTokens),
         status: _statusToString(message.status),
         errorMessage: Value(message.errorMessage),
         createdAt: message.createdAt,
@@ -44,11 +52,11 @@ class MessagesRepositoryImpl implements MessagesRepository {
       _db.messagesDao.updateContent(id, content);
 
   @override
-  Future<void> updateStatus(
-    String id,
-    MessageStatus status, {
-    String? error,
-  }) =>
+  Future<void> updateReasoning(String id, String reasoning) =>
+      _db.messagesDao.updateReasoning(id, reasoning);
+
+  @override
+  Future<void> updateStatus(String id, MessageStatus status, {String? error}) =>
       _db.messagesDao.updateStatus(id, _statusToString(status), error: error);
 
   @override
@@ -56,12 +64,13 @@ class MessagesRepositoryImpl implements MessagesRepository {
     String id, {
     int? inputTokens,
     int? outputTokens,
-  }) =>
-      _db.messagesDao.updateTokenUsage(
-        id,
-        inputTokens: inputTokens,
-        outputTokens: outputTokens,
-      );
+    int? thinkingTokens,
+  }) => _db.messagesDao.updateTokenUsage(
+    id,
+    inputTokens: inputTokens,
+    outputTokens: outputTokens,
+    thinkingTokens: thinkingTokens,
+  );
 
   @override
   Future<void> patch(String id, {DateTime? completedAt}) =>
@@ -71,15 +80,15 @@ class MessagesRepositoryImpl implements MessagesRepository {
   Future<void> deleteById(String id) => _db.messagesDao.deleteById(id);
 
   String _roleToString(MessageRole r) => switch (r) {
-        MessageRole.system => 'system',
-        MessageRole.user => 'user',
-        MessageRole.assistant => 'assistant',
-      };
+    MessageRole.system => 'system',
+    MessageRole.user => 'user',
+    MessageRole.assistant => 'assistant',
+  };
 
   String _statusToString(MessageStatus s) => switch (s) {
-        MessageStatus.sending => 'sending',
-        MessageStatus.streaming => 'streaming',
-        MessageStatus.complete => 'complete',
-        MessageStatus.failed => 'failed',
-      };
+    MessageStatus.sending => 'sending',
+    MessageStatus.streaming => 'streaming',
+    MessageStatus.complete => 'complete',
+    MessageStatus.failed => 'failed',
+  };
 }

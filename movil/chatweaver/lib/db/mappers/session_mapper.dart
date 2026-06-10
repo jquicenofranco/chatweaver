@@ -7,15 +7,15 @@ import 'package:chatweaver/session/domain/entities/chat_session.dart';
 /// `presentation/`. Toda conversion pasa por estas extensiones.
 extension SessionMapper on SessionRow {
   ChatSession toDomain() => ChatSession(
-        id: id,
-        title: title,
-        modelId: modelId,
-        providerId: providerId,
-        systemPrompt: systemPrompt,
-        totalInputTokens: totalInputTokens,
-        totalOutputTokens: totalOutputTokens,
-        lastMessageAt: lastMessageAt,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-      );
+    id: id,
+    title: title,
+    modelId: modelId,
+    providerId: providerId,
+    systemPrompt: systemPrompt,
+    totalInputTokens: totalInputTokens,
+    totalOutputTokens: totalOutputTokens,
+    lastMessageAt: lastMessageAt,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
 }

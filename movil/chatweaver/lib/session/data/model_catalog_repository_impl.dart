@@ -21,6 +21,18 @@ class ModelCatalogRepositoryImpl implements ModelCatalogRepository {
   }
 
   @override
+  Future<List<ModelDefinition>> listByProvider(String providerId) async {
+    final all = await listAll();
+    return all.where((m) => m.providerId == providerId).toList(growable: false);
+  }
+
+  @override
+  Future<List<ModelDefinition>> listEnabledByProvider(String providerId) async {
+    final byProvider = await listByProvider(providerId);
+    return byProvider.where((m) => m.enabled).toList(growable: false);
+  }
+
+  @override
   Future<ModelDefinition?> getById(String id) async {
     final row = await _db.modelConfigsDao.getById(id);
     return row?.toDomain();

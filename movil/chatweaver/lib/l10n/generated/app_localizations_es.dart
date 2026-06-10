@@ -38,6 +38,21 @@ class AppLocalizationsEs extends AppLocalizations {
   String get modelSelectorDisable => 'Deshabilitar';
 
   @override
+  String get providerSelectorTitle => 'Elegi un proveedor';
+
+  @override
+  String get providerSelectorHasCredential => 'Conectado';
+
+  @override
+  String get providerSelectorNoCredential => 'Sin configurar';
+
+  @override
+  String get providerSelectorDescriptionMiniMax => 'MiniMax AI';
+
+  @override
+  String get commonBack => 'Atras';
+
+  @override
   String get tokenInputTitle => 'Tu API key';
 
   @override
@@ -193,6 +208,49 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsLangEn => 'Ingles';
 
   @override
+  String get settingsShowReasoningTitle => 'Mostrar razonamiento';
+
+  @override
+  String get settingsShowReasoningSubtitle =>
+      'Para modelos que piensan antes de responder';
+
+  @override
+  String get reasoningTitle => 'Razonamiento';
+
+  @override
+  String get reasoningThinking => 'Pensando...';
+
+  @override
+  String reasoningTokensHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tokens de thinking',
+      one: '1 token de thinking',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reasoningCopyTooltip => 'Copiar razonamiento';
+
+  @override
+  String get reasoningCopied => 'Razonamiento copiado';
+
+  @override
+  String get reasoningCopySemantic => 'Copiar razonamiento al portapapeles';
+
+  @override
+  String reasoningPanelSemantic(int length) {
+    return 'Razonamiento del modelo, $length caracteres';
+  }
+
+  @override
+  String tokenMeterTooltip(int input, int thinking, int answer) {
+    return 'Input: $input · Thinking: $thinking · Answer: $answer';
+  }
+
+  @override
   String get commonRetry => 'Reintentar';
 
   @override
@@ -209,4 +267,22 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get commonClose => 'Cerrar';
+
+  @override
+  String get commonDefault => 'Predeterminado';
+
+  @override
+  String get commonProviderNotFound => 'Proveedor no encontrado en el catalogo';
+
+  @override
+  String get connectionTestNoModelsError =>
+      'No hay modelos disponibles para este proveedor';
+
+  @override
+  String chatSendError(String error) {
+    return 'Error al enviar: $error';
+  }
+
+  @override
+  String get settingsAddCredentialLabel => 'Etiqueta';
 }

@@ -18,6 +18,12 @@
   "modelSelectorBadgePaid": "pago",
   "modelSelectorDisable": "Deshabilitar",
 
+  "providerSelectorTitle": "Elegi un proveedor",
+  "providerSelectorHasCredential": "Conectado",
+  "providerSelectorNoCredential": "Sin configurar",
+  "providerSelectorDescriptionMiniMax": "MiniMax AI",
+  "commonBack": "Atras",
+
   "tokenInputTitle": "Tu API key",
   "tokenInputProvider": "Proveedor: {provider}",
   "@tokenInputProvider": {
@@ -93,10 +99,46 @@
   "settingsLangEs": "Espanol",
   "settingsLangEn": "Ingles",
 
+  "settingsShowReasoningTitle": "Mostrar razonamiento",
+  "settingsShowReasoningSubtitle": "Para modelos que piensan antes de responder",
+
+  "reasoningTitle": "Razonamiento",
+  "reasoningThinking": "Pensando...",
+  "reasoningTokensHint": "{count, plural, =1{1 token de thinking} other{{count} tokens de thinking}}",
+  "@reasoningTokensHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reasoningCopyTooltip": "Copiar razonamiento",
+  "reasoningCopied": "Razonamiento copiado",
+  "reasoningCopySemantic": "Copiar razonamiento al portapapeles",
+  "reasoningPanelSemantic": "Razonamiento del modelo, {length} caracteres",
+  "@reasoningPanelSemantic": {
+    "placeholders": { "length": { "type": "int" } }
+  },
+  "tokenMeterTooltip": "Input: {input} · Thinking: {thinking} · Answer: {answer}",
+  "@tokenMeterTooltip": {
+    "placeholders": {
+      "input": { "type": "int" },
+      "thinking": { "type": "int" },
+      "answer": { "type": "int" }
+    }
+  },
+
   "commonRetry": "Reintentar",
   "commonCancel": "Cancelar",
   "commonConfirm": "Confirmar",
   "commonDelete": "Borrar",
   "commonSave": "Guardar",
-  "commonClose": "Cerrar"
+  "commonClose": "Cerrar",
+  "commonDefault": "Predeterminado",
+  "commonProviderNotFound": "Proveedor no encontrado en el catalogo",
+
+  "connectionTestNoModelsError": "No hay modelos disponibles para este proveedor",
+  "chatSendError": "Error al enviar: {error}",
+  "@chatSendError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "settingsAddCredentialLabel": "Etiqueta"
 }

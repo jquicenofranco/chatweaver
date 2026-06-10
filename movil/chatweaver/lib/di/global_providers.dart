@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:chatweaver/db/app_database.dart';
@@ -10,6 +11,7 @@ import 'package:chatweaver/db/credential_repository_impl.dart';
 import 'package:chatweaver/db/secure_credential_store.dart';
 import 'package:chatweaver/llm/illm_provider.dart';
 import 'package:chatweaver/llm/llm_factory.dart';
+import 'package:chatweaver/llm/provider_definition.dart';
 import 'package:chatweaver/llm/providers/minimax/minimax_provider.dart';
 import 'package:chatweaver/message/data/messages_repository_impl.dart';
 import 'package:chatweaver/message/domain/entities/message.dart';
@@ -56,6 +58,44 @@ final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
 
 final uuidProvider = Provider<Uuid>((ref) => const Uuid());
 
+// ─── Preferencias de UI (no secretas) ──────────────────────────
+// **Spec 05 (T-28)**: toggle "mostrar reasoning" persistido en
+// `shared_preferences` (no en Drift, no en secure storage). La
+// clave NO es un secreto y no necesita encriptacion. La API key
+// sigue en `flutter_secure_storage` (regla de specs 01 y 03).
+
+final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
+  return SharedPreferences.getInstance();
+});
+
+/// Clave de la pref. Constante centralizada para que tests y
+/// providers usen la misma.
+const showReasoningPrefKey = 'show_reasoning_for_thinking_models';
+
+class ShowReasoningNotifier extends Notifier<bool> {
+  @override
+  bool build() {
+    // Default `true` (la spec quiere ON por defecto). Si las prefs
+    // todavia no estan listas (caso `loading`), devolvemos el
+    // default. Cuando el FutureProvider resuelve, el `ref.listen`
+    // de abajo actualiza el state.
+    final prefsAsync = ref.watch(sharedPreferencesProvider);
+    final prefs = prefsAsync.valueOrNull;
+    if (prefs == null) return true;
+    return prefs.getBool(showReasoningPrefKey) ?? true;
+  }
+
+  Future<void> set(bool value) async {
+    state = value;
+    final prefs = await ref.read(sharedPreferencesProvider.future);
+    await prefs.setBool(showReasoningPrefKey, value);
+  }
+}
+
+final showReasoningProvider = NotifierProvider<ShowReasoningNotifier, bool>(
+  ShowReasoningNotifier.new,
+);
+
 // ─── Credenciales ───────────────────────────────────────────────
 
 final credentialStoreProvider = Provider<SecureCredentialStore>((ref) {
@@ -81,13 +121,13 @@ class ActiveCredential {
 /// lee secure storage.
 final activeCredentialForProviderProvider =
     FutureProvider.family<ActiveCredential?, String>((ref, providerId) async {
-  final repo = ref.read(credentialRepositoryProvider);
-  final handle = await repo.activeFor(providerId);
-  if (handle == null) return null;
-  final apiKey = await repo.read(handle.id);
-  if (apiKey == null) return null;
-  return ActiveCredential(handle: handle, apiKey: apiKey);
-});
+      final repo = ref.read(credentialRepositoryProvider);
+      final handle = await repo.activeFor(providerId);
+      if (handle == null) return null;
+      final apiKey = await repo.read(handle.id);
+      if (apiKey == null) return null;
+      return ActiveCredential(handle: handle, apiKey: apiKey);
+    });
 
 /// True si existe al menos una credencial guardada.
 /// Usado por el redirect de splash.
@@ -103,6 +143,42 @@ final llmProviderFactoryProvider = Provider<LLMFactory>((ref) {
   MiniMaxProvider.registerSelf(factory);
   return factory;
 });
+
+/// Catalogo de proveedores disponibles, derivado en runtime desde
+/// [LLMFactory.supportedProviders] (spec 04 §4.1).
+///
+/// **Spec 04 v2.0.0**: el onboarding ahora arranca con
+/// ProviderSelector, no ModelSelector. Esta lista es la fuente de
+/// verdad para la pantalla.
+///
+/// `name` se queda igual al `id` por ahora (los providers
+/// pre-registrados tienen nombres estables que no requieren i18n).
+/// `description` se resuelve desde un mapa hardcoded de MVP
+/// (expandible en el futuro a una tabla de metadata en DB).
+final availableProvidersProvider = Provider<List<ProviderDefinition>>((ref) {
+  const descriptions = <String, String>{'MiniMax': 'MiniMax AI'};
+  return ref
+      .read(llmProviderFactoryProvider)
+      .supportedProviders
+      .map((id) {
+        return ProviderDefinition(
+          id: id,
+          name: id,
+          description: descriptions[id],
+        );
+      })
+      .toList(growable: false);
+});
+
+/// True si existe al menos una credencial guardada para el
+/// provider dado (spec 04 §4.1). Usado por [ProviderSelectorScreen]
+/// para mostrar el badge "Conectado / Sin configurar".
+final hasAnyCredentialForProviderProvider = FutureProvider.family<bool, String>(
+  (ref, providerId) async {
+    final handles = await ref.watch(credentialRepositoryProvider).list();
+    return handles.any((h) => h.providerId == providerId);
+  },
+);
 
 /// Argumentos para construir un [ILLMProvider] especifico.
 class LlmProviderArgs {
@@ -128,13 +204,16 @@ class LlmProviderArgs {
           contextWindow == other.contextWindow;
 
   @override
-  int get hashCode =>
-      Object.hash(providerId, modelId, apiKey, contextWindow);
+  int get hashCode => Object.hash(providerId, modelId, apiKey, contextWindow);
 }
 
-final llmProviderProvider =
-    Provider.family<ILLMProvider, LlmProviderArgs>((ref, args) {
-  return ref.read(llmProviderFactoryProvider).build(
+final llmProviderProvider = Provider.family<ILLMProvider, LlmProviderArgs>((
+  ref,
+  args,
+) {
+  return ref
+      .read(llmProviderFactoryProvider)
+      .build(
         providerId: args.providerId,
         modelId: args.modelId,
         apiKey: args.apiKey,
@@ -160,27 +239,33 @@ final modelCatalogRepositoryProvider = Provider<ModelCatalogRepository>((ref) {
 // ─── Sesiones / Mensajes ────────────────────────────────────────
 
 /// Stream de una sesion por id.
-final sessionProvider =
-    FutureProvider.family<ChatSession?, String>((ref, sessionId) async {
+final sessionProvider = FutureProvider.family<ChatSession?, String>((
+  ref,
+  sessionId,
+) async {
   return ref.read(sessionsRepositoryProvider).getById(sessionId);
 });
 
 /// Stream de mensajes de una sesion.
-final messagesStreamProvider =
-    StreamProvider.family<List<Message>, String>((ref, sessionId) {
+final messagesStreamProvider = StreamProvider.family<List<Message>, String>((
+  ref,
+  sessionId,
+) {
   return ref.read(messagesRepositoryProvider).watchBySession(sessionId);
 });
 
 /// Provider activo para una sesion de chat.
-final activeLlmProviderProvider =
-    FutureProvider.family<ILLMProvider, String>((ref, sessionId) async {
+final activeLlmProviderProvider = FutureProvider.family<ILLMProvider, String>((
+  ref,
+  sessionId,
+) async {
   final session = await ref.watch(sessionProvider(sessionId).future);
   if (session == null) {
     throw StateError('Sesion $sessionId no encontrada');
   }
-  final model = await ref.read(modelCatalogRepositoryProvider).getById(
-        session.modelId,
-      );
+  final model = await ref
+      .read(modelCatalogRepositoryProvider)
+      .getById(session.modelId);
   if (model == null) {
     throw StateError('Modelo ${session.modelId} no encontrado en catalogo');
   }
@@ -190,7 +275,9 @@ final activeLlmProviderProvider =
   if (credential == null) {
     throw StateError('Sin credencial para provider ${session.providerId}');
   }
-  return ref.read(llmProviderFactoryProvider).build(
+  return ref
+      .read(llmProviderFactoryProvider)
+      .build(
         providerId: session.providerId,
         modelId: session.modelId,
         apiKey: credential.apiKey,

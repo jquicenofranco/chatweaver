@@ -22,6 +22,10 @@ mixin _$GenerateRequest {
   double get temperature => throw _privateConstructorUsedError;
   int get maxOutputTokens => throw _privateConstructorUsedError;
 
+  /// Pide al provider que exponga el reasoning trace separado del
+  /// answer. Solo tiene efecto en providers que lo soporten.
+  bool get enableReasoning => throw _privateConstructorUsedError;
+
   /// Create a copy of GenerateRequest
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -41,6 +45,7 @@ abstract class $GenerateRequestCopyWith<$Res> {
     String? systemPrompt,
     double temperature,
     int maxOutputTokens,
+    bool enableReasoning,
   });
 }
 
@@ -63,6 +68,7 @@ class _$GenerateRequestCopyWithImpl<$Res, $Val extends GenerateRequest>
     Object? systemPrompt = freezed,
     Object? temperature = null,
     Object? maxOutputTokens = null,
+    Object? enableReasoning = null,
   }) {
     return _then(
       _value.copyWith(
@@ -82,6 +88,10 @@ class _$GenerateRequestCopyWithImpl<$Res, $Val extends GenerateRequest>
                 ? _value.maxOutputTokens
                 : maxOutputTokens // ignore: cast_nullable_to_non_nullable
                       as int,
+            enableReasoning: null == enableReasoning
+                ? _value.enableReasoning
+                : enableReasoning // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -102,6 +112,7 @@ abstract class _$$GenerateRequestImplCopyWith<$Res>
     String? systemPrompt,
     double temperature,
     int maxOutputTokens,
+    bool enableReasoning,
   });
 }
 
@@ -123,6 +134,7 @@ class __$$GenerateRequestImplCopyWithImpl<$Res>
     Object? systemPrompt = freezed,
     Object? temperature = null,
     Object? maxOutputTokens = null,
+    Object? enableReasoning = null,
   }) {
     return _then(
       _$GenerateRequestImpl(
@@ -142,6 +154,10 @@ class __$$GenerateRequestImplCopyWithImpl<$Res>
             ? _value.maxOutputTokens
             : maxOutputTokens // ignore: cast_nullable_to_non_nullable
                   as int,
+        enableReasoning: null == enableReasoning
+            ? _value.enableReasoning
+            : enableReasoning // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -155,6 +171,7 @@ class _$GenerateRequestImpl implements _GenerateRequest {
     this.systemPrompt,
     this.temperature = 0.7,
     this.maxOutputTokens = 1024,
+    this.enableReasoning = false,
   }) : _messages = messages;
 
   final List<ChatMessage> _messages;
@@ -174,9 +191,15 @@ class _$GenerateRequestImpl implements _GenerateRequest {
   @JsonKey()
   final int maxOutputTokens;
 
+  /// Pide al provider que exponga el reasoning trace separado del
+  /// answer. Solo tiene efecto en providers que lo soporten.
+  @override
+  @JsonKey()
+  final bool enableReasoning;
+
   @override
   String toString() {
-    return 'GenerateRequest(messages: $messages, systemPrompt: $systemPrompt, temperature: $temperature, maxOutputTokens: $maxOutputTokens)';
+    return 'GenerateRequest(messages: $messages, systemPrompt: $systemPrompt, temperature: $temperature, maxOutputTokens: $maxOutputTokens, enableReasoning: $enableReasoning)';
   }
 
   @override
@@ -190,7 +213,9 @@ class _$GenerateRequestImpl implements _GenerateRequest {
             (identical(other.temperature, temperature) ||
                 other.temperature == temperature) &&
             (identical(other.maxOutputTokens, maxOutputTokens) ||
-                other.maxOutputTokens == maxOutputTokens));
+                other.maxOutputTokens == maxOutputTokens) &&
+            (identical(other.enableReasoning, enableReasoning) ||
+                other.enableReasoning == enableReasoning));
   }
 
   @override
@@ -200,6 +225,7 @@ class _$GenerateRequestImpl implements _GenerateRequest {
     systemPrompt,
     temperature,
     maxOutputTokens,
+    enableReasoning,
   );
 
   /// Create a copy of GenerateRequest
@@ -220,6 +246,7 @@ abstract class _GenerateRequest implements GenerateRequest {
     final String? systemPrompt,
     final double temperature,
     final int maxOutputTokens,
+    final bool enableReasoning,
   }) = _$GenerateRequestImpl;
 
   @override
@@ -230,6 +257,11 @@ abstract class _GenerateRequest implements GenerateRequest {
   double get temperature;
   @override
   int get maxOutputTokens;
+
+  /// Pide al provider que exponga el reasoning trace separado del
+  /// answer. Solo tiene efecto en providers que lo soporten.
+  @override
+  bool get enableReasoning;
 
   /// Create a copy of GenerateRequest
   /// with the given fields replaced by the non-null parameter values.

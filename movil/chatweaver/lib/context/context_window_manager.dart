@@ -15,10 +15,10 @@ class ContextWindowManager {
     required int contextWindow,
     int maxOutputTokens = 1024,
     ContextStrategy? strategy,
-  })  : _provider = provider,
-        _contextWindow = contextWindow,
-        _maxOutputTokens = maxOutputTokens,
-        _strategy = strategy ?? const SlidingWindowStrategy();
+  }) : _provider = provider,
+       _contextWindow = contextWindow,
+       _maxOutputTokens = maxOutputTokens,
+       _strategy = strategy ?? const SlidingWindowStrategy();
 
   static const int _perMessageOverhead = 4;
 

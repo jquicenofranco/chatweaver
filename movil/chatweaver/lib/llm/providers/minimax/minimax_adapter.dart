@@ -11,6 +11,17 @@ import 'dto/minimax_response_dto.dart';
 class MiniMaxAdapter {
   const MiniMaxAdapter._();
 
+  /// Mapea una respuesta cruda de MiniMax a un chunk de dominio.
+  ///
+  /// **OQ-01 resuelto**: el campo `delta.content` puede contener
+  /// tags `<think>...</think>` inline para modelos thinking. La
+  /// separacion reasoning/answer NO se hace aca (somos stateless);
+  /// se hace en [MiniMaxProvider] con [ThinkingStreamParser].
+  ///
+  /// **OQ-02**: `usage.reasoningTokens` puede o no existir. Si
+  /// viene, lo propagamos como `LlmUsage.thinkingTokens`. Si no,
+  /// el caso de uso [SendMessage] hace fallback a length/4 del
+  /// reasoning buffer.
   static GenerateResponseChunk toChunk(MiniMaxResponseDTO dto) {
     final choice = dto.choices?.isNotEmpty ?? false ? dto.choices!.first : null;
     return GenerateResponseChunk(
@@ -20,6 +31,7 @@ class MiniMaxAdapter {
           : LlmUsage(
               inputTokens: dto.usage!.promptTokens ?? 0,
               outputTokens: dto.usage!.completionTokens ?? 0,
+              thinkingTokens: dto.usage!.reasoningTokens ?? 0,
             ),
       finishReason: choice?.finishReason ?? dto.finishReason,
     );
@@ -33,8 +45,8 @@ class MiniMaxAdapter {
   }
 
   static String _toApiRole(ChatRole role) => switch (role) {
-        ChatRole.system => 'system',
-        ChatRole.user => 'user',
-        ChatRole.assistant => 'assistant',
-      };
+    ChatRole.system => 'system',
+    ChatRole.user => 'user',
+    ChatRole.assistant => 'assistant',
+  };
 }

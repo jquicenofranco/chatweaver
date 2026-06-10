@@ -16,8 +16,8 @@ class MiniMaxApiClient {
   MiniMaxApiClient({
     required Dio dio,
     String baseUrl = 'https://api.minimax.io/v1',
-  })  : _dio = dio,
-        _baseUrl = baseUrl;
+  }) : _dio = dio,
+       _baseUrl = baseUrl;
 
   final Dio _dio;
   final String _baseUrl;

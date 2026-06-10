@@ -12,19 +12,19 @@ class CredentialHandlesDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<CredentialHandleRow>> list() => select(credentialHandles).get();
 
-  Future<CredentialHandleRow?> getById(String id) =>
-      (select(credentialHandles)..where((t) => t.id.equals(id)))
-          .getSingleOrNull();
+  Future<CredentialHandleRow?> getById(String id) => (select(
+    credentialHandles,
+  )..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<CredentialHandleRow?> firstForProvider(String providerId) =>
       (select(credentialHandles)
             ..where((t) => t.providerId.equals(providerId))
             ..orderBy([
               (t) => OrderingTerm(
-                    expression: t.lastUsedAt,
-                    mode: OrderingMode.desc,
-                    nulls: NullsOrder.last,
-                  ),
+                expression: t.lastUsedAt,
+                mode: OrderingMode.desc,
+                nulls: NullsOrder.last,
+              ),
               (t) => OrderingTerm(expression: t.createdAt),
             ]))
           .getSingleOrNull();
@@ -36,6 +36,7 @@ class CredentialHandlesDao extends DatabaseAccessor<AppDatabase>
       (delete(credentialHandles)..where((t) => t.id.equals(id))).go();
 
   Future<void> touch(String id, DateTime when) =>
-      (update(credentialHandles)..where((t) => t.id.equals(id)))
-          .write(CredentialHandlesCompanion(lastUsedAt: Value(when)));
+      (update(credentialHandles)..where((t) => t.id.equals(id))).write(
+        CredentialHandlesCompanion(lastUsedAt: Value(when)),
+      );
 }

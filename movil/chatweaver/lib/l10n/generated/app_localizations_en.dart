@@ -38,6 +38,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get modelSelectorDisable => 'Disable';
 
   @override
+  String get providerSelectorTitle => 'Choose a provider';
+
+  @override
+  String get providerSelectorHasCredential => 'Connected';
+
+  @override
+  String get providerSelectorNoCredential => 'Not configured';
+
+  @override
+  String get providerSelectorDescriptionMiniMax => 'MiniMax AI';
+
+  @override
+  String get commonBack => 'Back';
+
+  @override
   String get tokenInputTitle => 'Your API key';
 
   @override
@@ -193,6 +208,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLangEn => 'English';
 
   @override
+  String get settingsShowReasoningTitle => 'Show reasoning';
+
+  @override
+  String get settingsShowReasoningSubtitle =>
+      'For models that think before responding';
+
+  @override
+  String get reasoningTitle => 'Reasoning';
+
+  @override
+  String get reasoningThinking => 'Thinking...';
+
+  @override
+  String reasoningTokensHint(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count thinking tokens',
+      one: '1 thinking token',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get reasoningCopyTooltip => 'Copy reasoning';
+
+  @override
+  String get reasoningCopied => 'Reasoning copied';
+
+  @override
+  String get reasoningCopySemantic => 'Copy reasoning to clipboard';
+
+  @override
+  String reasoningPanelSemantic(int length) {
+    return 'Model reasoning, $length characters';
+  }
+
+  @override
+  String tokenMeterTooltip(int input, int thinking, int answer) {
+    return 'Input: $input · Thinking: $thinking · Answer: $answer';
+  }
+
+  @override
   String get commonRetry => 'Retry';
 
   @override
@@ -209,4 +267,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonClose => 'Close';
+
+  @override
+  String get commonDefault => 'Default';
+
+  @override
+  String get commonProviderNotFound => 'Provider not found in catalog';
+
+  @override
+  String get connectionTestNoModelsError =>
+      'No models available for this provider';
+
+  @override
+  String chatSendError(String error) {
+    return 'Send error: $error';
+  }
+
+  @override
+  String get settingsAddCredentialLabel => 'Label';
 }

@@ -69,6 +69,7 @@ _$MiniMaxUsageDTOImpl _$$MiniMaxUsageDTOImplFromJson(
   promptTokens: (json['prompt_tokens'] as num?)?.toInt(),
   completionTokens: (json['completion_tokens'] as num?)?.toInt(),
   totalTokens: (json['total_tokens'] as num?)?.toInt(),
+  reasoningTokens: (json['reasoning_tokens'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$MiniMaxUsageDTOImplToJson(
@@ -77,4 +78,5 @@ Map<String, dynamic> _$$MiniMaxUsageDTOImplToJson(
   'prompt_tokens': instance.promptTokens,
   'completion_tokens': instance.completionTokens,
   'total_tokens': instance.totalTokens,
+  'reasoning_tokens': instance.reasoningTokens,
 };

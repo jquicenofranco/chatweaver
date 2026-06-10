@@ -33,14 +33,10 @@ class ChatWeaverApp extends ConsumerWidget {
       useMaterial3: true,
       colorScheme: colorScheme,
       cardTheme: CardThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,

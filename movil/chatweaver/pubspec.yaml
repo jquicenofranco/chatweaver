@@ -46,6 +46,10 @@ dependencies:
   flutter_markdown: ^0.7.3
   url_launcher: ^6.3.0
 
+  # Preferencias de UI (no secretas) — toggle "mostrar reasoning"
+  # de spec 05. La API key sigue en flutter_secure_storage.
+  shared_preferences: ^2.3.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

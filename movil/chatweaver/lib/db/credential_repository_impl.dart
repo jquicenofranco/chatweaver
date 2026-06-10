@@ -11,8 +11,8 @@ class CredentialRepositoryImpl implements CredentialRepository {
   CredentialRepositoryImpl({
     required AppDatabase db,
     required SecureCredentialStore store,
-  })  : _db = db,
-        _store = store;
+  }) : _db = db,
+       _store = store;
 
   final AppDatabase _db;
   final SecureCredentialStore _store;
@@ -65,11 +65,11 @@ class CredentialRepositoryImpl implements CredentialRepository {
   }
 
   CredentialHandle _toDomain(CredentialHandleRow row) => CredentialHandle(
-        id: row.id,
-        providerId: row.providerId,
-        label: row.label,
-        secureKey: row.secureKey,
-        lastUsedAt: row.lastUsedAt,
-        createdAt: row.createdAt,
-      );
+    id: row.id,
+    providerId: row.providerId,
+    label: row.label,
+    secureKey: row.secureKey,
+    lastUsedAt: row.lastUsedAt,
+    createdAt: row.createdAt,
+  );
 }

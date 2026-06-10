@@ -22,6 +22,7 @@ mixin _$ModelDefinition {
   String get displayName => throw _privateConstructorUsedError;
   int get contextWindow => throw _privateConstructorUsedError;
   bool get supportsStreaming => throw _privateConstructorUsedError;
+  bool get supportsReasoning => throw _privateConstructorUsedError;
   String? get apiBaseUrl => throw _privateConstructorUsedError;
   bool get enabled => throw _privateConstructorUsedError;
 
@@ -45,6 +46,7 @@ abstract class $ModelDefinitionCopyWith<$Res> {
     String displayName,
     int contextWindow,
     bool supportsStreaming,
+    bool supportsReasoning,
     String? apiBaseUrl,
     bool enabled,
   });
@@ -70,6 +72,7 @@ class _$ModelDefinitionCopyWithImpl<$Res, $Val extends ModelDefinition>
     Object? displayName = null,
     Object? contextWindow = null,
     Object? supportsStreaming = null,
+    Object? supportsReasoning = null,
     Object? apiBaseUrl = freezed,
     Object? enabled = null,
   }) {
@@ -94,6 +97,10 @@ class _$ModelDefinitionCopyWithImpl<$Res, $Val extends ModelDefinition>
             supportsStreaming: null == supportsStreaming
                 ? _value.supportsStreaming
                 : supportsStreaming // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            supportsReasoning: null == supportsReasoning
+                ? _value.supportsReasoning
+                : supportsReasoning // ignore: cast_nullable_to_non_nullable
                       as bool,
             apiBaseUrl: freezed == apiBaseUrl
                 ? _value.apiBaseUrl
@@ -124,6 +131,7 @@ abstract class _$$ModelDefinitionImplCopyWith<$Res>
     String displayName,
     int contextWindow,
     bool supportsStreaming,
+    bool supportsReasoning,
     String? apiBaseUrl,
     bool enabled,
   });
@@ -148,6 +156,7 @@ class __$$ModelDefinitionImplCopyWithImpl<$Res>
     Object? displayName = null,
     Object? contextWindow = null,
     Object? supportsStreaming = null,
+    Object? supportsReasoning = null,
     Object? apiBaseUrl = freezed,
     Object? enabled = null,
   }) {
@@ -173,6 +182,10 @@ class __$$ModelDefinitionImplCopyWithImpl<$Res>
             ? _value.supportsStreaming
             : supportsStreaming // ignore: cast_nullable_to_non_nullable
                   as bool,
+        supportsReasoning: null == supportsReasoning
+            ? _value.supportsReasoning
+            : supportsReasoning // ignore: cast_nullable_to_non_nullable
+                  as bool,
         apiBaseUrl: freezed == apiBaseUrl
             ? _value.apiBaseUrl
             : apiBaseUrl // ignore: cast_nullable_to_non_nullable
@@ -195,6 +208,7 @@ class _$ModelDefinitionImpl implements _ModelDefinition {
     required this.displayName,
     required this.contextWindow,
     this.supportsStreaming = true,
+    this.supportsReasoning = false,
     this.apiBaseUrl,
     this.enabled = true,
   });
@@ -211,6 +225,9 @@ class _$ModelDefinitionImpl implements _ModelDefinition {
   @JsonKey()
   final bool supportsStreaming;
   @override
+  @JsonKey()
+  final bool supportsReasoning;
+  @override
   final String? apiBaseUrl;
   @override
   @JsonKey()
@@ -218,7 +235,7 @@ class _$ModelDefinitionImpl implements _ModelDefinition {
 
   @override
   String toString() {
-    return 'ModelDefinition(id: $id, providerId: $providerId, displayName: $displayName, contextWindow: $contextWindow, supportsStreaming: $supportsStreaming, apiBaseUrl: $apiBaseUrl, enabled: $enabled)';
+    return 'ModelDefinition(id: $id, providerId: $providerId, displayName: $displayName, contextWindow: $contextWindow, supportsStreaming: $supportsStreaming, supportsReasoning: $supportsReasoning, apiBaseUrl: $apiBaseUrl, enabled: $enabled)';
   }
 
   @override
@@ -235,6 +252,8 @@ class _$ModelDefinitionImpl implements _ModelDefinition {
                 other.contextWindow == contextWindow) &&
             (identical(other.supportsStreaming, supportsStreaming) ||
                 other.supportsStreaming == supportsStreaming) &&
+            (identical(other.supportsReasoning, supportsReasoning) ||
+                other.supportsReasoning == supportsReasoning) &&
             (identical(other.apiBaseUrl, apiBaseUrl) ||
                 other.apiBaseUrl == apiBaseUrl) &&
             (identical(other.enabled, enabled) || other.enabled == enabled));
@@ -248,6 +267,7 @@ class _$ModelDefinitionImpl implements _ModelDefinition {
     displayName,
     contextWindow,
     supportsStreaming,
+    supportsReasoning,
     apiBaseUrl,
     enabled,
   );
@@ -271,6 +291,7 @@ abstract class _ModelDefinition implements ModelDefinition {
     required final String displayName,
     required final int contextWindow,
     final bool supportsStreaming,
+    final bool supportsReasoning,
     final String? apiBaseUrl,
     final bool enabled,
   }) = _$ModelDefinitionImpl;
@@ -285,6 +306,8 @@ abstract class _ModelDefinition implements ModelDefinition {
   int get contextWindow;
   @override
   bool get supportsStreaming;
+  @override
+  bool get supportsReasoning;
   @override
   String? get apiBaseUrl;
   @override

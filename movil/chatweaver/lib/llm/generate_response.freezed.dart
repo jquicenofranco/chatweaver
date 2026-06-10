@@ -18,6 +18,12 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$GenerateResponseChunk {
   String? get textDelta => throw _privateConstructorUsedError;
+
+  /// Incremental de reasoning trace. Solo presente en modelos que
+  /// producen chain-of-thought (MiniMax M3, o1, DeepSeek-R1, etc.)
+  /// y cuando el provider lo expone como stream separado.
+  /// Null para modelos no-thinking y para providers sin soporte.
+  String? get reasoningDelta => throw _privateConstructorUsedError;
   LlmUsage? get usage => throw _privateConstructorUsedError;
   String? get finishReason => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
@@ -38,6 +44,7 @@ abstract class $GenerateResponseChunkCopyWith<$Res> {
   @useResult
   $Res call({
     String? textDelta,
+    String? reasoningDelta,
     LlmUsage? usage,
     String? finishReason,
     String? errorMessage,
@@ -65,6 +72,7 @@ class _$GenerateResponseChunkCopyWithImpl<
   @override
   $Res call({
     Object? textDelta = freezed,
+    Object? reasoningDelta = freezed,
     Object? usage = freezed,
     Object? finishReason = freezed,
     Object? errorMessage = freezed,
@@ -74,6 +82,10 @@ class _$GenerateResponseChunkCopyWithImpl<
             textDelta: freezed == textDelta
                 ? _value.textDelta
                 : textDelta // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reasoningDelta: freezed == reasoningDelta
+                ? _value.reasoningDelta
+                : reasoningDelta // ignore: cast_nullable_to_non_nullable
                       as String?,
             usage: freezed == usage
                 ? _value.usage
@@ -118,6 +130,7 @@ abstract class _$$GenerateResponseChunkImplCopyWith<$Res>
   @useResult
   $Res call({
     String? textDelta,
+    String? reasoningDelta,
     LlmUsage? usage,
     String? finishReason,
     String? errorMessage,
@@ -143,6 +156,7 @@ class __$$GenerateResponseChunkImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? textDelta = freezed,
+    Object? reasoningDelta = freezed,
     Object? usage = freezed,
     Object? finishReason = freezed,
     Object? errorMessage = freezed,
@@ -152,6 +166,10 @@ class __$$GenerateResponseChunkImplCopyWithImpl<$Res>
         textDelta: freezed == textDelta
             ? _value.textDelta
             : textDelta // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        reasoningDelta: freezed == reasoningDelta
+            ? _value.reasoningDelta
+            : reasoningDelta // ignore: cast_nullable_to_non_nullable
                   as String?,
         usage: freezed == usage
             ? _value.usage
@@ -175,6 +193,7 @@ class __$$GenerateResponseChunkImplCopyWithImpl<$Res>
 class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
   const _$GenerateResponseChunkImpl({
     this.textDelta,
+    this.reasoningDelta,
     this.usage,
     this.finishReason,
     this.errorMessage,
@@ -182,6 +201,13 @@ class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
 
   @override
   final String? textDelta;
+
+  /// Incremental de reasoning trace. Solo presente en modelos que
+  /// producen chain-of-thought (MiniMax M3, o1, DeepSeek-R1, etc.)
+  /// y cuando el provider lo expone como stream separado.
+  /// Null para modelos no-thinking y para providers sin soporte.
+  @override
+  final String? reasoningDelta;
   @override
   final LlmUsage? usage;
   @override
@@ -191,7 +217,7 @@ class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
 
   @override
   String toString() {
-    return 'GenerateResponseChunk(textDelta: $textDelta, usage: $usage, finishReason: $finishReason, errorMessage: $errorMessage)';
+    return 'GenerateResponseChunk(textDelta: $textDelta, reasoningDelta: $reasoningDelta, usage: $usage, finishReason: $finishReason, errorMessage: $errorMessage)';
   }
 
   @override
@@ -201,6 +227,8 @@ class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
             other is _$GenerateResponseChunkImpl &&
             (identical(other.textDelta, textDelta) ||
                 other.textDelta == textDelta) &&
+            (identical(other.reasoningDelta, reasoningDelta) ||
+                other.reasoningDelta == reasoningDelta) &&
             (identical(other.usage, usage) || other.usage == usage) &&
             (identical(other.finishReason, finishReason) ||
                 other.finishReason == finishReason) &&
@@ -209,8 +237,14 @@ class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, textDelta, usage, finishReason, errorMessage);
+  int get hashCode => Object.hash(
+    runtimeType,
+    textDelta,
+    reasoningDelta,
+    usage,
+    finishReason,
+    errorMessage,
+  );
 
   /// Create a copy of GenerateResponseChunk
   /// with the given fields replaced by the non-null parameter values.
@@ -228,6 +262,7 @@ class _$GenerateResponseChunkImpl implements _GenerateResponseChunk {
 abstract class _GenerateResponseChunk implements GenerateResponseChunk {
   const factory _GenerateResponseChunk({
     final String? textDelta,
+    final String? reasoningDelta,
     final LlmUsage? usage,
     final String? finishReason,
     final String? errorMessage,
@@ -235,6 +270,13 @@ abstract class _GenerateResponseChunk implements GenerateResponseChunk {
 
   @override
   String? get textDelta;
+
+  /// Incremental de reasoning trace. Solo presente en modelos que
+  /// producen chain-of-thought (MiniMax M3, o1, DeepSeek-R1, etc.)
+  /// y cuando el provider lo expone como stream separado.
+  /// Null para modelos no-thinking y para providers sin soporte.
+  @override
+  String? get reasoningDelta;
   @override
   LlmUsage? get usage;
   @override
@@ -255,6 +297,11 @@ mixin _$LlmUsage {
   int get inputTokens => throw _privateConstructorUsedError;
   int get outputTokens => throw _privateConstructorUsedError;
 
+  /// Thinking tokens (spec 05 T-02): autoritativos del provider si
+  /// el API los expone en `usage.reasoning_tokens`; 0 si no.
+  /// Distinto de `outputTokens` (respuesta final). C-TECH-06.
+  int get thinkingTokens => throw _privateConstructorUsedError;
+
   /// Create a copy of LlmUsage
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -267,7 +314,7 @@ abstract class $LlmUsageCopyWith<$Res> {
   factory $LlmUsageCopyWith(LlmUsage value, $Res Function(LlmUsage) then) =
       _$LlmUsageCopyWithImpl<$Res, LlmUsage>;
   @useResult
-  $Res call({int inputTokens, int outputTokens});
+  $Res call({int inputTokens, int outputTokens, int thinkingTokens});
 }
 
 /// @nodoc
@@ -284,7 +331,11 @@ class _$LlmUsageCopyWithImpl<$Res, $Val extends LlmUsage>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? inputTokens = null, Object? outputTokens = null}) {
+  $Res call({
+    Object? inputTokens = null,
+    Object? outputTokens = null,
+    Object? thinkingTokens = null,
+  }) {
     return _then(
       _value.copyWith(
             inputTokens: null == inputTokens
@@ -294,6 +345,10 @@ class _$LlmUsageCopyWithImpl<$Res, $Val extends LlmUsage>
             outputTokens: null == outputTokens
                 ? _value.outputTokens
                 : outputTokens // ignore: cast_nullable_to_non_nullable
+                      as int,
+            thinkingTokens: null == thinkingTokens
+                ? _value.thinkingTokens
+                : thinkingTokens // ignore: cast_nullable_to_non_nullable
                       as int,
           )
           as $Val,
@@ -310,7 +365,7 @@ abstract class _$$LlmUsageImplCopyWith<$Res>
   ) = __$$LlmUsageImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int inputTokens, int outputTokens});
+  $Res call({int inputTokens, int outputTokens, int thinkingTokens});
 }
 
 /// @nodoc
@@ -326,7 +381,11 @@ class __$$LlmUsageImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? inputTokens = null, Object? outputTokens = null}) {
+  $Res call({
+    Object? inputTokens = null,
+    Object? outputTokens = null,
+    Object? thinkingTokens = null,
+  }) {
     return _then(
       _$LlmUsageImpl(
         inputTokens: null == inputTokens
@@ -337,6 +396,10 @@ class __$$LlmUsageImplCopyWithImpl<$Res>
             ? _value.outputTokens
             : outputTokens // ignore: cast_nullable_to_non_nullable
                   as int,
+        thinkingTokens: null == thinkingTokens
+            ? _value.thinkingTokens
+            : thinkingTokens // ignore: cast_nullable_to_non_nullable
+                  as int,
       ),
     );
   }
@@ -345,17 +408,27 @@ class __$$LlmUsageImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$LlmUsageImpl extends _LlmUsage {
-  const _$LlmUsageImpl({required this.inputTokens, required this.outputTokens})
-    : super._();
+  const _$LlmUsageImpl({
+    required this.inputTokens,
+    required this.outputTokens,
+    this.thinkingTokens = 0,
+  }) : super._();
 
   @override
   final int inputTokens;
   @override
   final int outputTokens;
 
+  /// Thinking tokens (spec 05 T-02): autoritativos del provider si
+  /// el API los expone en `usage.reasoning_tokens`; 0 si no.
+  /// Distinto de `outputTokens` (respuesta final). C-TECH-06.
+  @override
+  @JsonKey()
+  final int thinkingTokens;
+
   @override
   String toString() {
-    return 'LlmUsage(inputTokens: $inputTokens, outputTokens: $outputTokens)';
+    return 'LlmUsage(inputTokens: $inputTokens, outputTokens: $outputTokens, thinkingTokens: $thinkingTokens)';
   }
 
   @override
@@ -366,11 +439,14 @@ class _$LlmUsageImpl extends _LlmUsage {
             (identical(other.inputTokens, inputTokens) ||
                 other.inputTokens == inputTokens) &&
             (identical(other.outputTokens, outputTokens) ||
-                other.outputTokens == outputTokens));
+                other.outputTokens == outputTokens) &&
+            (identical(other.thinkingTokens, thinkingTokens) ||
+                other.thinkingTokens == thinkingTokens));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, inputTokens, outputTokens);
+  int get hashCode =>
+      Object.hash(runtimeType, inputTokens, outputTokens, thinkingTokens);
 
   /// Create a copy of LlmUsage
   /// with the given fields replaced by the non-null parameter values.
@@ -385,6 +461,7 @@ abstract class _LlmUsage extends LlmUsage {
   const factory _LlmUsage({
     required final int inputTokens,
     required final int outputTokens,
+    final int thinkingTokens,
   }) = _$LlmUsageImpl;
   const _LlmUsage._() : super._();
 
@@ -392,6 +469,12 @@ abstract class _LlmUsage extends LlmUsage {
   int get inputTokens;
   @override
   int get outputTokens;
+
+  /// Thinking tokens (spec 05 T-02): autoritativos del provider si
+  /// el API los expone en `usage.reasoning_tokens`; 0 si no.
+  /// Distinto de `outputTokens` (respuesta final). C-TECH-06.
+  @override
+  int get thinkingTokens;
 
   /// Create a copy of LlmUsage
   /// with the given fields replaced by the non-null parameter values.

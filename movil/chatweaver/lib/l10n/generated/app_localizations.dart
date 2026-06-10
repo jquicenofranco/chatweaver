@@ -152,6 +152,36 @@ abstract class AppLocalizations {
   /// **'Deshabilitar'**
   String get modelSelectorDisable;
 
+  /// No description provided for @providerSelectorTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Elegi un proveedor'**
+  String get providerSelectorTitle;
+
+  /// No description provided for @providerSelectorHasCredential.
+  ///
+  /// In es, this message translates to:
+  /// **'Conectado'**
+  String get providerSelectorHasCredential;
+
+  /// No description provided for @providerSelectorNoCredential.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin configurar'**
+  String get providerSelectorNoCredential;
+
+  /// No description provided for @providerSelectorDescriptionMiniMax.
+  ///
+  /// In es, this message translates to:
+  /// **'MiniMax AI'**
+  String get providerSelectorDescriptionMiniMax;
+
+  /// No description provided for @commonBack.
+  ///
+  /// In es, this message translates to:
+  /// **'Atras'**
+  String get commonBack;
+
   /// No description provided for @tokenInputTitle.
   ///
   /// In es, this message translates to:
@@ -434,6 +464,66 @@ abstract class AppLocalizations {
   /// **'Ingles'**
   String get settingsLangEn;
 
+  /// No description provided for @settingsShowReasoningTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar razonamiento'**
+  String get settingsShowReasoningTitle;
+
+  /// No description provided for @settingsShowReasoningSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Para modelos que piensan antes de responder'**
+  String get settingsShowReasoningSubtitle;
+
+  /// No description provided for @reasoningTitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Razonamiento'**
+  String get reasoningTitle;
+
+  /// No description provided for @reasoningThinking.
+  ///
+  /// In es, this message translates to:
+  /// **'Pensando...'**
+  String get reasoningThinking;
+
+  /// No description provided for @reasoningTokensHint.
+  ///
+  /// In es, this message translates to:
+  /// **'{count, plural, =1{1 token de thinking} other{{count} tokens de thinking}}'**
+  String reasoningTokensHint(int count);
+
+  /// No description provided for @reasoningCopyTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar razonamiento'**
+  String get reasoningCopyTooltip;
+
+  /// No description provided for @reasoningCopied.
+  ///
+  /// In es, this message translates to:
+  /// **'Razonamiento copiado'**
+  String get reasoningCopied;
+
+  /// No description provided for @reasoningCopySemantic.
+  ///
+  /// In es, this message translates to:
+  /// **'Copiar razonamiento al portapapeles'**
+  String get reasoningCopySemantic;
+
+  /// No description provided for @reasoningPanelSemantic.
+  ///
+  /// In es, this message translates to:
+  /// **'Razonamiento del modelo, {length} caracteres'**
+  String reasoningPanelSemantic(int length);
+
+  /// No description provided for @tokenMeterTooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'Input: {input} · Thinking: {thinking} · Answer: {answer}'**
+  String tokenMeterTooltip(int input, int thinking, int answer);
+
   /// No description provided for @commonRetry.
   ///
   /// In es, this message translates to:
@@ -469,6 +559,36 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cerrar'**
   String get commonClose;
+
+  /// No description provided for @commonDefault.
+  ///
+  /// In es, this message translates to:
+  /// **'Predeterminado'**
+  String get commonDefault;
+
+  /// No description provided for @commonProviderNotFound.
+  ///
+  /// In es, this message translates to:
+  /// **'Proveedor no encontrado en el catalogo'**
+  String get commonProviderNotFound;
+
+  /// No description provided for @connectionTestNoModelsError.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay modelos disponibles para este proveedor'**
+  String get connectionTestNoModelsError;
+
+  /// No description provided for @chatSendError.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al enviar: {error}'**
+  String chatSendError(String error);
+
+  /// No description provided for @settingsAddCredentialLabel.
+  ///
+  /// In es, this message translates to:
+  /// **'Etiqueta'**
+  String get settingsAddCredentialLabel;
 }
 
 class _AppLocalizationsDelegate

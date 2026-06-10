@@ -11,9 +11,9 @@ class SessionsRepositoryImpl implements SessionsRepository {
   final AppDatabase _db;
 
   @override
-  Stream<List<ChatSession>> watchAll() => _db.sessionsDao
-      .watchAll()
-      .map((rows) => rows.map((r) => r.toDomain()).toList(growable: false));
+  Stream<List<ChatSession>> watchAll() => _db.sessionsDao.watchAll().map(
+    (rows) => rows.map((r) => r.toDomain()).toList(growable: false),
+  );
 
   @override
   Stream<List<ChatSession>> watchByModel(String modelId) => _db.sessionsDao
@@ -72,10 +72,6 @@ class SessionsRepositoryImpl implements SessionsRepository {
       _db.sessionsDao.touch(id, when);
 
   @override
-  Future<void> accumulateTokens(
-    String id, {
-    int input = 0,
-    int output = 0,
-  }) =>
+  Future<void> accumulateTokens(String id, {int input = 0, int output = 0}) =>
       _db.sessionsDao.accumulateTokens(id, input: input, output: output);
 }

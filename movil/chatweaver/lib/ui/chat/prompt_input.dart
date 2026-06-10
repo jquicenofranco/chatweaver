@@ -30,7 +30,9 @@ class _PromptInputState extends ConsumerState<PromptInput> {
     final isStreaming = ref.watch(
       chatControllerProvider(widget.sessionId).select((s) => s.isStreaming),
     );
-    final controller = ref.read(chatControllerProvider(widget.sessionId).notifier);
+    final controller = ref.read(
+      chatControllerProvider(widget.sessionId).notifier,
+    );
 
     return SafeArea(
       top: false,
@@ -56,9 +58,7 @@ class _PromptInputState extends ConsumerState<PromptInput> {
             ),
             const SizedBox(width: 8),
             IconButton.filled(
-              icon: Icon(
-                isStreaming ? Icons.stop : Icons.send,
-              ),
+              icon: Icon(isStreaming ? Icons.stop : Icons.send),
               tooltip: isStreaming ? l10n.chatStop : l10n.chatSend,
               onPressed: () {
                 if (isStreaming) {

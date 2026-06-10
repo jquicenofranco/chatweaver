@@ -17,6 +17,12 @@
   "modelSelectorBadgePaid": "paid",
   "modelSelectorDisable": "Disable",
 
+  "providerSelectorTitle": "Choose a provider",
+  "providerSelectorHasCredential": "Connected",
+  "providerSelectorNoCredential": "Not configured",
+  "providerSelectorDescriptionMiniMax": "MiniMax AI",
+  "commonBack": "Back",
+
   "tokenInputTitle": "Your API key",
   "tokenInputProvider": "Provider: {provider}",
   "@tokenInputProvider": {
@@ -92,10 +98,46 @@
   "settingsLangEs": "Spanish",
   "settingsLangEn": "English",
 
+  "settingsShowReasoningTitle": "Show reasoning",
+  "settingsShowReasoningSubtitle": "For models that think before responding",
+
+  "reasoningTitle": "Reasoning",
+  "reasoningThinking": "Thinking...",
+  "reasoningTokensHint": "{count, plural, =1{1 thinking token} other{{count} thinking tokens}}",
+  "@reasoningTokensHint": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "reasoningCopyTooltip": "Copy reasoning",
+  "reasoningCopied": "Reasoning copied",
+  "reasoningCopySemantic": "Copy reasoning to clipboard",
+  "reasoningPanelSemantic": "Model reasoning, {length} characters",
+  "@reasoningPanelSemantic": {
+    "placeholders": { "length": { "type": "int" } }
+  },
+  "tokenMeterTooltip": "Input: {input} · Thinking: {thinking} · Answer: {answer}",
+  "@tokenMeterTooltip": {
+    "placeholders": {
+      "input": { "type": "int" },
+      "thinking": { "type": "int" },
+      "answer": { "type": "int" }
+    }
+  },
+
   "commonRetry": "Retry",
   "commonCancel": "Cancel",
   "commonConfirm": "Confirm",
   "commonDelete": "Delete",
   "commonSave": "Save",
-  "commonClose": "Close"
+  "commonClose": "Close",
+  "commonDefault": "Default",
+  "commonProviderNotFound": "Provider not found in catalog",
+
+  "connectionTestNoModelsError": "No models available for this provider",
+  "chatSendError": "Send error: {error}",
+  "@chatSendError": {
+    "placeholders": {
+      "error": { "type": "String" }
+    }
+  },
+  "settingsAddCredentialLabel": "Label"
 }

@@ -6,8 +6,8 @@ class CreateSession {
   const CreateSession({
     required SessionsRepository sessions,
     required Uuid uuid,
-  })  : _sessions = sessions,
-        _uuid = uuid;
+  }) : _sessions = sessions,
+       _uuid = uuid;
 
   final SessionsRepository _sessions;
   final Uuid _uuid;

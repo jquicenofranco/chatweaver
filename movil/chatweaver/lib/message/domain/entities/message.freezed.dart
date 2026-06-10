@@ -21,8 +21,14 @@ mixin _$Message {
   String get sessionId => throw _privateConstructorUsedError;
   MessageRole get role => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
+  String? get reasoning => throw _privateConstructorUsedError;
   int? get inputTokens => throw _privateConstructorUsedError;
   int? get outputTokens => throw _privateConstructorUsedError;
+
+  /// Thinking tokens autoritativos del provider. Distinto de
+  /// `outputTokens` (C-TECH-06). Nullable: null para mensajes
+  /// sin thinking (modelos no-thinking, providers sin reporte).
+  int? get thinkingTokens => throw _privateConstructorUsedError;
   MessageStatus get status => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
@@ -44,8 +50,10 @@ abstract class $MessageCopyWith<$Res> {
     String sessionId,
     MessageRole role,
     String content,
+    String? reasoning,
     int? inputTokens,
     int? outputTokens,
+    int? thinkingTokens,
     MessageStatus status,
     String? errorMessage,
     DateTime createdAt,
@@ -72,8 +80,10 @@ class _$MessageCopyWithImpl<$Res, $Val extends Message>
     Object? sessionId = null,
     Object? role = null,
     Object? content = null,
+    Object? reasoning = freezed,
     Object? inputTokens = freezed,
     Object? outputTokens = freezed,
+    Object? thinkingTokens = freezed,
     Object? status = null,
     Object? errorMessage = freezed,
     Object? createdAt = null,
@@ -97,6 +107,10 @@ class _$MessageCopyWithImpl<$Res, $Val extends Message>
                 ? _value.content
                 : content // ignore: cast_nullable_to_non_nullable
                       as String,
+            reasoning: freezed == reasoning
+                ? _value.reasoning
+                : reasoning // ignore: cast_nullable_to_non_nullable
+                      as String?,
             inputTokens: freezed == inputTokens
                 ? _value.inputTokens
                 : inputTokens // ignore: cast_nullable_to_non_nullable
@@ -104,6 +118,10 @@ class _$MessageCopyWithImpl<$Res, $Val extends Message>
             outputTokens: freezed == outputTokens
                 ? _value.outputTokens
                 : outputTokens // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            thinkingTokens: freezed == thinkingTokens
+                ? _value.thinkingTokens
+                : thinkingTokens // ignore: cast_nullable_to_non_nullable
                       as int?,
             status: null == status
                 ? _value.status
@@ -140,8 +158,10 @@ abstract class _$$MessageImplCopyWith<$Res> implements $MessageCopyWith<$Res> {
     String sessionId,
     MessageRole role,
     String content,
+    String? reasoning,
     int? inputTokens,
     int? outputTokens,
+    int? thinkingTokens,
     MessageStatus status,
     String? errorMessage,
     DateTime createdAt,
@@ -167,8 +187,10 @@ class __$$MessageImplCopyWithImpl<$Res>
     Object? sessionId = null,
     Object? role = null,
     Object? content = null,
+    Object? reasoning = freezed,
     Object? inputTokens = freezed,
     Object? outputTokens = freezed,
+    Object? thinkingTokens = freezed,
     Object? status = null,
     Object? errorMessage = freezed,
     Object? createdAt = null,
@@ -192,6 +214,10 @@ class __$$MessageImplCopyWithImpl<$Res>
             ? _value.content
             : content // ignore: cast_nullable_to_non_nullable
                   as String,
+        reasoning: freezed == reasoning
+            ? _value.reasoning
+            : reasoning // ignore: cast_nullable_to_non_nullable
+                  as String?,
         inputTokens: freezed == inputTokens
             ? _value.inputTokens
             : inputTokens // ignore: cast_nullable_to_non_nullable
@@ -199,6 +225,10 @@ class __$$MessageImplCopyWithImpl<$Res>
         outputTokens: freezed == outputTokens
             ? _value.outputTokens
             : outputTokens // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        thinkingTokens: freezed == thinkingTokens
+            ? _value.thinkingTokens
+            : thinkingTokens // ignore: cast_nullable_to_non_nullable
                   as int?,
         status: null == status
             ? _value.status
@@ -229,8 +259,10 @@ class _$MessageImpl implements _Message {
     required this.sessionId,
     required this.role,
     required this.content,
+    this.reasoning,
     this.inputTokens,
     this.outputTokens,
+    this.thinkingTokens,
     this.status = MessageStatus.complete,
     this.errorMessage,
     required this.createdAt,
@@ -246,9 +278,17 @@ class _$MessageImpl implements _Message {
   @override
   final String content;
   @override
+  final String? reasoning;
+  @override
   final int? inputTokens;
   @override
   final int? outputTokens;
+
+  /// Thinking tokens autoritativos del provider. Distinto de
+  /// `outputTokens` (C-TECH-06). Nullable: null para mensajes
+  /// sin thinking (modelos no-thinking, providers sin reporte).
+  @override
+  final int? thinkingTokens;
   @override
   @JsonKey()
   final MessageStatus status;
@@ -261,7 +301,7 @@ class _$MessageImpl implements _Message {
 
   @override
   String toString() {
-    return 'Message(id: $id, sessionId: $sessionId, role: $role, content: $content, inputTokens: $inputTokens, outputTokens: $outputTokens, status: $status, errorMessage: $errorMessage, createdAt: $createdAt, completedAt: $completedAt)';
+    return 'Message(id: $id, sessionId: $sessionId, role: $role, content: $content, reasoning: $reasoning, inputTokens: $inputTokens, outputTokens: $outputTokens, thinkingTokens: $thinkingTokens, status: $status, errorMessage: $errorMessage, createdAt: $createdAt, completedAt: $completedAt)';
   }
 
   @override
@@ -274,10 +314,14 @@ class _$MessageImpl implements _Message {
                 other.sessionId == sessionId) &&
             (identical(other.role, role) || other.role == role) &&
             (identical(other.content, content) || other.content == content) &&
+            (identical(other.reasoning, reasoning) ||
+                other.reasoning == reasoning) &&
             (identical(other.inputTokens, inputTokens) ||
                 other.inputTokens == inputTokens) &&
             (identical(other.outputTokens, outputTokens) ||
                 other.outputTokens == outputTokens) &&
+            (identical(other.thinkingTokens, thinkingTokens) ||
+                other.thinkingTokens == thinkingTokens) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
@@ -294,8 +338,10 @@ class _$MessageImpl implements _Message {
     sessionId,
     role,
     content,
+    reasoning,
     inputTokens,
     outputTokens,
+    thinkingTokens,
     status,
     errorMessage,
     createdAt,
@@ -317,8 +363,10 @@ abstract class _Message implements Message {
     required final String sessionId,
     required final MessageRole role,
     required final String content,
+    final String? reasoning,
     final int? inputTokens,
     final int? outputTokens,
+    final int? thinkingTokens,
     final MessageStatus status,
     final String? errorMessage,
     required final DateTime createdAt,
@@ -334,9 +382,17 @@ abstract class _Message implements Message {
   @override
   String get content;
   @override
+  String? get reasoning;
+  @override
   int? get inputTokens;
   @override
   int? get outputTokens;
+
+  /// Thinking tokens autoritativos del provider. Distinto de
+  /// `outputTokens` (C-TECH-06). Nullable: null para mensajes
+  /// sin thinking (modelos no-thinking, providers sin reporte).
+  @override
+  int? get thinkingTokens;
   @override
   MessageStatus get status;
   @override

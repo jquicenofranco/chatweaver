@@ -21,9 +21,5 @@ abstract class SessionsRepository {
 
   Future<void> touch(String id, DateTime when);
 
-  Future<void> accumulateTokens(
-    String id, {
-    int input = 0,
-    int output = 0,
-  });
+  Future<void> accumulateTokens(String id, {int input = 0, int output = 0});
 }

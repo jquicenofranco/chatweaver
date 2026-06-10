@@ -16,6 +16,8 @@ _$MiniMaxRequestDTOImpl _$$MiniMaxRequestDTOImplFromJson(
   stream: json['stream'] as bool? ?? true,
   temperature: (json['temperature'] as num?)?.toDouble() ?? 0.7,
   maxTokens: (json['max_tokens'] as num?)?.toInt() ?? 1024,
+  reasoningSplit: json['reasoning_split'] as bool? ?? false,
+  thinking: json['thinking'] as Map<String, dynamic>?,
 );
 
 Map<String, dynamic> _$$MiniMaxRequestDTOImplToJson(
@@ -26,6 +28,8 @@ Map<String, dynamic> _$$MiniMaxRequestDTOImplToJson(
   'stream': instance.stream,
   'temperature': instance.temperature,
   'max_tokens': instance.maxTokens,
+  'reasoning_split': instance.reasoningSplit,
+  if (instance.thinking case final value?) 'thinking': value,
 };
 
 _$MiniMaxMessageDTOImpl _$$MiniMaxMessageDTOImplFromJson(

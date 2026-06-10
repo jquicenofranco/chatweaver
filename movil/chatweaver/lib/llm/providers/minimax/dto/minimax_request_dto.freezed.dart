@@ -28,6 +28,20 @@ mixin _$MiniMaxRequestDTO {
   @JsonKey(name: 'max_tokens')
   int get maxTokens => throw _privateConstructorUsedError;
 
+  /// **Spec 05 (T-07)**: pide al API separar `reasoning_content`
+  /// de `content` en el delta. Solo se envia en `true` cuando el
+  /// `ModelDefinition.supportsReasoning == true` (resuelto por el
+  /// caso de uso y propagado via [GenerateRequest.enableReasoning]).
+  @JsonKey(name: 'reasoning_split')
+  bool get reasoningSplit => throw _privateConstructorUsedError;
+
+  /// **Spec 05 (T-07 / OQ-05)**: habilita thinking adaptativo en
+  /// modelos como M3. Se omite del JSON si es null (json_serializable
+  /// lo maneja con `includeIfNull: false`). Se envia como
+  /// `{"type": "adaptive"}` cuando el provider lo soporta.
+  @JsonKey(includeIfNull: false)
+  Map<String, dynamic>? get thinking => throw _privateConstructorUsedError;
+
   /// Serializes this MiniMaxRequestDTO to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -51,6 +65,8 @@ abstract class $MiniMaxRequestDTOCopyWith<$Res> {
     bool stream,
     double temperature,
     @JsonKey(name: 'max_tokens') int maxTokens,
+    @JsonKey(name: 'reasoning_split') bool reasoningSplit,
+    @JsonKey(includeIfNull: false) Map<String, dynamic>? thinking,
   });
 }
 
@@ -74,6 +90,8 @@ class _$MiniMaxRequestDTOCopyWithImpl<$Res, $Val extends MiniMaxRequestDTO>
     Object? stream = null,
     Object? temperature = null,
     Object? maxTokens = null,
+    Object? reasoningSplit = null,
+    Object? thinking = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -97,6 +115,14 @@ class _$MiniMaxRequestDTOCopyWithImpl<$Res, $Val extends MiniMaxRequestDTO>
                 ? _value.maxTokens
                 : maxTokens // ignore: cast_nullable_to_non_nullable
                       as int,
+            reasoningSplit: null == reasoningSplit
+                ? _value.reasoningSplit
+                : reasoningSplit // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            thinking: freezed == thinking
+                ? _value.thinking
+                : thinking // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
           )
           as $Val,
     );
@@ -118,6 +144,8 @@ abstract class _$$MiniMaxRequestDTOImplCopyWith<$Res>
     bool stream,
     double temperature,
     @JsonKey(name: 'max_tokens') int maxTokens,
+    @JsonKey(name: 'reasoning_split') bool reasoningSplit,
+    @JsonKey(includeIfNull: false) Map<String, dynamic>? thinking,
   });
 }
 
@@ -140,6 +168,8 @@ class __$$MiniMaxRequestDTOImplCopyWithImpl<$Res>
     Object? stream = null,
     Object? temperature = null,
     Object? maxTokens = null,
+    Object? reasoningSplit = null,
+    Object? thinking = freezed,
   }) {
     return _then(
       _$MiniMaxRequestDTOImpl(
@@ -163,6 +193,14 @@ class __$$MiniMaxRequestDTOImplCopyWithImpl<$Res>
             ? _value.maxTokens
             : maxTokens // ignore: cast_nullable_to_non_nullable
                   as int,
+        reasoningSplit: null == reasoningSplit
+            ? _value.reasoningSplit
+            : reasoningSplit // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        thinking: freezed == thinking
+            ? _value._thinking
+            : thinking // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
       ),
     );
   }
@@ -177,7 +215,10 @@ class _$MiniMaxRequestDTOImpl implements _MiniMaxRequestDTO {
     this.stream = true,
     this.temperature = 0.7,
     @JsonKey(name: 'max_tokens') this.maxTokens = 1024,
-  }) : _messages = messages;
+    @JsonKey(name: 'reasoning_split') this.reasoningSplit = false,
+    @JsonKey(includeIfNull: false) final Map<String, dynamic>? thinking,
+  }) : _messages = messages,
+       _thinking = thinking;
 
   factory _$MiniMaxRequestDTOImpl.fromJson(Map<String, dynamic> json) =>
       _$$MiniMaxRequestDTOImplFromJson(json);
@@ -202,9 +243,37 @@ class _$MiniMaxRequestDTOImpl implements _MiniMaxRequestDTO {
   @JsonKey(name: 'max_tokens')
   final int maxTokens;
 
+  /// **Spec 05 (T-07)**: pide al API separar `reasoning_content`
+  /// de `content` en el delta. Solo se envia en `true` cuando el
+  /// `ModelDefinition.supportsReasoning == true` (resuelto por el
+  /// caso de uso y propagado via [GenerateRequest.enableReasoning]).
+  @override
+  @JsonKey(name: 'reasoning_split')
+  final bool reasoningSplit;
+
+  /// **Spec 05 (T-07 / OQ-05)**: habilita thinking adaptativo en
+  /// modelos como M3. Se omite del JSON si es null (json_serializable
+  /// lo maneja con `includeIfNull: false`). Se envia como
+  /// `{"type": "adaptive"}` cuando el provider lo soporta.
+  final Map<String, dynamic>? _thinking;
+
+  /// **Spec 05 (T-07 / OQ-05)**: habilita thinking adaptativo en
+  /// modelos como M3. Se omite del JSON si es null (json_serializable
+  /// lo maneja con `includeIfNull: false`). Se envia como
+  /// `{"type": "adaptive"}` cuando el provider lo soporta.
+  @override
+  @JsonKey(includeIfNull: false)
+  Map<String, dynamic>? get thinking {
+    final value = _thinking;
+    if (value == null) return null;
+    if (_thinking is EqualUnmodifiableMapView) return _thinking;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'MiniMaxRequestDTO(model: $model, messages: $messages, stream: $stream, temperature: $temperature, maxTokens: $maxTokens)';
+    return 'MiniMaxRequestDTO(model: $model, messages: $messages, stream: $stream, temperature: $temperature, maxTokens: $maxTokens, reasoningSplit: $reasoningSplit, thinking: $thinking)';
   }
 
   @override
@@ -218,7 +287,10 @@ class _$MiniMaxRequestDTOImpl implements _MiniMaxRequestDTO {
             (identical(other.temperature, temperature) ||
                 other.temperature == temperature) &&
             (identical(other.maxTokens, maxTokens) ||
-                other.maxTokens == maxTokens));
+                other.maxTokens == maxTokens) &&
+            (identical(other.reasoningSplit, reasoningSplit) ||
+                other.reasoningSplit == reasoningSplit) &&
+            const DeepCollectionEquality().equals(other._thinking, _thinking));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -230,6 +302,8 @@ class _$MiniMaxRequestDTOImpl implements _MiniMaxRequestDTO {
     stream,
     temperature,
     maxTokens,
+    reasoningSplit,
+    const DeepCollectionEquality().hash(_thinking),
   );
 
   /// Create a copy of MiniMaxRequestDTO
@@ -256,6 +330,8 @@ abstract class _MiniMaxRequestDTO implements MiniMaxRequestDTO {
     final bool stream,
     final double temperature,
     @JsonKey(name: 'max_tokens') final int maxTokens,
+    @JsonKey(name: 'reasoning_split') final bool reasoningSplit,
+    @JsonKey(includeIfNull: false) final Map<String, dynamic>? thinking,
   }) = _$MiniMaxRequestDTOImpl;
 
   factory _MiniMaxRequestDTO.fromJson(Map<String, dynamic> json) =
@@ -272,6 +348,22 @@ abstract class _MiniMaxRequestDTO implements MiniMaxRequestDTO {
   @override
   @JsonKey(name: 'max_tokens')
   int get maxTokens;
+
+  /// **Spec 05 (T-07)**: pide al API separar `reasoning_content`
+  /// de `content` en el delta. Solo se envia en `true` cuando el
+  /// `ModelDefinition.supportsReasoning == true` (resuelto por el
+  /// caso de uso y propagado via [GenerateRequest.enableReasoning]).
+  @override
+  @JsonKey(name: 'reasoning_split')
+  bool get reasoningSplit;
+
+  /// **Spec 05 (T-07 / OQ-05)**: habilita thinking adaptativo en
+  /// modelos como M3. Se omite del JSON si es null (json_serializable
+  /// lo maneja con `includeIfNull: false`). Se envia como
+  /// `{"type": "adaptive"}` cuando el provider lo soporta.
+  @override
+  @JsonKey(includeIfNull: false)
+  Map<String, dynamic>? get thinking;
 
   /// Create a copy of MiniMaxRequestDTO
   /// with the given fields replaced by the non-null parameter values.

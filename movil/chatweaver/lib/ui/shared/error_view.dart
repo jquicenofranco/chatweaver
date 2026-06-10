@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:chatweaver/l10n/generated/app_localizations.dart';
 
 class ErrorView extends StatelessWidget {
-  const ErrorView({
-    super.key,
-    required this.message,
-    this.onRetry,
-  });
+  const ErrorView({super.key, required this.message, this.onRetry});
 
   final String message;
   final VoidCallback? onRetry;

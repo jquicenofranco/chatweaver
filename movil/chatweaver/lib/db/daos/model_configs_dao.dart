@@ -24,6 +24,7 @@ class ModelConfigsDao extends DatabaseAccessor<AppDatabase>
       into(modelConfigs).insertOnConflictUpdate(row);
 
   Future<void> setEnabled(String id, bool enabled) =>
-      (update(modelConfigs)..where((t) => t.id.equals(id)))
-          .write(ModelConfigsCompanion(enabled: Value(enabled)));
+      (update(modelConfigs)..where((t) => t.id.equals(id))).write(
+        ModelConfigsCompanion(enabled: Value(enabled)),
+      );
 }

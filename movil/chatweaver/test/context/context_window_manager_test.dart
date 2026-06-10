@@ -6,11 +6,8 @@ import 'package:mocktail/mocktail.dart';
 
 class _MockProvider extends Mock implements ILLMProvider {}
 
-ChatMessage _msg(String id, String content) => ChatMessage(
-      id: id,
-      role: ChatRole.user,
-      content: content,
-    );
+ChatMessage _msg(String id, String content) =>
+    ChatMessage(id: id, role: ChatRole.user, content: content);
 
 int _calc(String text) => (text.length / 4).ceil();
 
@@ -20,9 +17,9 @@ void main() {
 
   setUp(() {
     provider = _MockProvider();
-    when(() => provider.calculateTokens(any())).thenAnswer(
-      (inv) => _calc(inv.positionalArguments.first as String),
-    );
+    when(
+      () => provider.calculateTokens(any()),
+    ).thenAnswer((inv) => _calc(inv.positionalArguments.first as String));
     manager = ContextWindowManager(
       provider: provider,
       contextWindow: 1000,
@@ -36,10 +33,7 @@ void main() {
     });
 
     test('trimHistory sin systemPrompt descuenta solo maxOutput', () {
-      final history = List.generate(
-        5,
-        (i) => _msg('m$i', 'A' * 16),
-      );
+      final history = List.generate(5, (i) => _msg('m$i', 'A' * 16));
 
       final result = manager.trimHistory(history);
 
@@ -68,26 +62,25 @@ void main() {
       expect(result, isEmpty);
     });
 
-    test('estimateNextSendTokens suma historial + draft + system + maxOutput',
-        () {
-      final history = List.generate(3, (i) => _msg('m$i', 'A' * 16));
-      final draft = 'B' * 16; // 4 + 4 = 8
+    test(
+      'estimateNextSendTokens suma historial + draft + system + maxOutput',
+      () {
+        final history = List.generate(3, (i) => _msg('m$i', 'A' * 16));
+        final draft = 'B' * 16; // 4 + 4 = 8
 
-      final total = manager.estimateNextSendTokens(
-        history: history,
-        draft: draft,
-        systemPrompt: 'C' * 16, // 4 + 4 = 8
-      );
+        final total = manager.estimateNextSendTokens(
+          history: history,
+          draft: draft,
+          systemPrompt: 'C' * 16, // 4 + 4 = 8
+        );
 
-      // 3 mensajes * 8 + draft 8 + system 8 + maxOutput 100 = 140
-      expect(total, 140);
-    });
+        // 3 mensajes * 8 + draft 8 + system 8 + maxOutput 100 = 140
+        expect(total, 140);
+      },
+    );
 
     test('usageRatio devuelve ratio estimado / contextWindow', () {
-      final ratio = manager.usageRatio(
-        history: const [],
-        draft: 'A' * 16,
-      );
+      final ratio = manager.usageRatio(history: const [], draft: 'A' * 16);
       // estimate = 4 (draft) + 4 (overhead) + 100 (maxOutput) = 108
       // ratio = 108 / 1000 = 0.108
       expect(ratio, closeTo(0.108, 0.001));
@@ -103,12 +96,14 @@ void main() {
 
   // Verifica que la firma ILLMProvider incluye todos los miembros
   // que la capa de contexto consume.
-  test('ILLMProvider expone los miembros requeridos por ContextWindowManager',
-      () {
-    final p = provider;
-    expect(p.calculateTokens, isA<Function>());
-    // generateStream y parseNetworkError existen (no los usamos aqui).
-    expect(p.generateStream, isA<Function>());
-    expect(p.parseNetworkError, isA<Function>());
-  });
+  test(
+    'ILLMProvider expone los miembros requeridos por ContextWindowManager',
+    () {
+      final p = provider;
+      expect(p.calculateTokens, isA<Function>());
+      // generateStream y parseNetworkError existen (no los usamos aqui).
+      expect(p.generateStream, isA<Function>());
+      expect(p.parseNetworkError, isA<Function>());
+    },
+  );
 }

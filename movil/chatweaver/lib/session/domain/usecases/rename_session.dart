@@ -5,6 +5,5 @@ class RenameSession {
 
   final SessionsRepository _repo;
 
-  Future<void> call(String id, String newTitle) =>
-      _repo.rename(id, newTitle);
+  Future<void> call(String id, String newTitle) => _repo.rename(id, newTitle);
 }

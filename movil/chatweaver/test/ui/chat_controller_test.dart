@@ -2,8 +2,10 @@ import 'package:chatweaver/db/credential_handle.dart';
 import 'package:chatweaver/di/global_providers.dart';
 import 'package:chatweaver/llm/illm_provider.dart';
 import 'package:chatweaver/llm/llm_factory.dart';
+import 'package:chatweaver/message/domain/entities/message.dart';
 import 'package:chatweaver/ui/chat/chat_controller.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show mapEquals;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -72,10 +74,8 @@ void main() {
     );
   }
 
-  test(
-      'ChatController se construye sin throw aunque activeLlmProviderProvider '
-      'este en loading (regresion del "Bad state")',
-      () async {
+  test('ChatController se construye sin throw aunque activeLlmProviderProvider '
+      'este en loading (regresion del "Bad state")', () async {
     final container = makeContainer(
       activeProviderDelay: const Duration(milliseconds: 50),
       credentialToReturn: ActiveCredential(
@@ -94,10 +94,8 @@ void main() {
     expect(controller.state.error, isNull);
   });
 
-  test(
-      'ChatController.send() propaga a state.error si la resolucion falla '
-      '(en vez de throwear)',
-      () async {
+  test('ChatController.send() propaga a state.error si la resolucion falla '
+      '(en vez de throwear)', () async {
     final container = makeContainer(
       credentialToReturn: null, // sin credencial -> falla la resolucion
     );
@@ -110,8 +108,136 @@ void main() {
     await controller.send('hola');
 
     expect(controller.state.isStreaming, isFalse);
-    expect(controller.state.error, isNotNull,
-        reason: 'El error debe quedar en state.error, no en un throw.');
+    expect(
+      controller.state.error,
+      isNotNull,
+      reason: 'El error debe quedar en state.error, no en un throw.',
+    );
+  });
+
+  // ─── Spec 05: reasoningByMessageId ─────────────────────────────
+
+  group('reasoningByMessageId (Spec 05 T-22)', () {
+    late ProviderContainer container;
+    late ChatController controller;
+
+    setUp(() {
+      container = makeContainer(
+        credentialToReturn: ActiveCredential(
+          handle: credential,
+          apiKey: 'sk-test',
+        ),
+      );
+      addTearDown(container.dispose);
+      controller = container.read(chatControllerProvider('s1').notifier);
+    });
+
+    test('syncFromMessages separa reasoning del content en el state', () {
+      // **Spec 05 (T-22)**: el map `reasoningByMessageId` es un
+      // espejo incremental. Verificamos que el helper popula el
+      // map con los razonamientos de los assistant messages y NO
+      // toca `content`.
+      final now = DateTime(2026);
+      final messages = [
+        Message(
+          id: 'm-user',
+          sessionId: 's1',
+          role: MessageRole.user,
+          content: 'cuanto es 17*24?',
+          createdAt: now,
+        ),
+        Message(
+          id: 'm-asst',
+          sessionId: 's1',
+          role: MessageRole.assistant,
+          content: 'La respuesta es 408.',
+          reasoning: '17 * 24 = 17*20 + 17*4 = 340 + 68 = 408',
+          thinkingTokens: 15,
+          createdAt: now.add(const Duration(seconds: 1)),
+        ),
+      ];
+
+      controller.syncFromMessages(messages);
+
+      // reasoning se mapea por id, separado del content.
+      expect(
+        controller.state.reasoningByMessageId['m-asst'],
+        '17 * 24 = 17*20 + 17*4 = 340 + 68 = 408',
+      );
+      // Los user messages no tienen reasoning.
+      expect(
+        controller.state.reasoningByMessageId.containsKey('m-user'),
+        isFalse,
+      );
+      // El content sigue en el `messages` del state, no en el
+      // map (separacion explicita de concerns).
+      expect(
+        controller.state.reasoningByMessageId['m-asst'],
+        isNot(contains('La respuesta es')),
+        reason: 'reasoning NO contiene el answer (C-BIZ-01)',
+      );
+    });
+
+    test('syncFromMessages ignora messages con reasoning null o vacio', () {
+      final now = DateTime(2026);
+      final messages = [
+        Message(
+          id: 'm-asst',
+          sessionId: 's1',
+          role: MessageRole.assistant,
+          content: 'hola',
+          createdAt: now,
+        ),
+        Message(
+          id: 'm-asst-2',
+          sessionId: 's1',
+          role: MessageRole.assistant,
+          content: 'adios',
+          reasoning: '', // vacio, no entra al map
+          createdAt: now,
+        ),
+      ];
+
+      controller.syncFromMessages(messages);
+
+      expect(
+        controller.state.reasoningByMessageId,
+        isEmpty,
+        reason: 'reasoning null y vacio no se incluyen',
+      );
+    });
+
+    test('syncFromMessages es idempotente (no rebuilds innecesarios)', () {
+      final now = DateTime(2026);
+      final messages = [
+        Message(
+          id: 'm-asst',
+          sessionId: 's1',
+          role: MessageRole.assistant,
+          content: 'ok',
+          reasoning: 'pensando',
+          createdAt: now,
+        ),
+      ];
+
+      controller.syncFromMessages(messages);
+      final first = controller.state.reasoningByMessageId;
+      controller.syncFromMessages(messages);
+      final second = controller.state.reasoningByMessageId;
+
+      // La implementacion usa `mapEquals` (contenido) para
+      // evitar rebuilds. Verificamos que el contenido es el mismo
+      // tras la segunda llamada (no que sea la misma instancia).
+      // La instancia puede diferir si freezed recrea el map
+      // internamente, pero el contenido debe ser identico.
+      expect(
+        mapEquals(first, second),
+        isTrue,
+        reason: 'mismo contenido si la lista no cambio',
+      );
+      expect(first, equals({'m-asst': 'pensando'}));
+      expect(second, equals({'m-asst': 'pensando'}));
+    });
   });
 }
 
